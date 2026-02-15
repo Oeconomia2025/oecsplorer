@@ -1,0 +1,112 @@
+// ============================================================
+// Oeconomia Explorer — Prisma Schema
+// ============================================================
+// PostgreSQL schema for storing decoded blockchain data
+// across all 5 Oeconomia protocols.
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Core Transaction Table ────────────────────────────────────
+
+model Transaction {
+  id             Int      @id @default(autoincrement())
+  txHash         String   @unique @map("tx_hash") @db.VarChar(66)
+  blockNumber    BigInt   @map("block_number")
+  blockTimestamp DateTime @map("block_timestamp")
+  fromAddress    String   @map("from_address") @db.VarChar(42)
+  toAddress      String?  @map("to_address") @db.VarChar(42)
+  valueWei       Decimal  @map("value_wei")
+  gasUsed        BigInt   @map("gas_used")
+  gasPrice       Decimal  @map("gas_price")
+  status         Boolean
+  protocol       String   @db.VarChar(20) // alluria, eloqura, artivya, iridescia, oeconomia
+  actionType     String   @map("action_type") @db.VarChar(80)
+  functionName   String?  @map("function_name") @db.VarChar(80)
+  decodedData    Json?    @map("decoded_data") // Protocol-specific decoded args + events
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  tokenTransfers TokenTransfer[]
+
+  @@index([txHash])
+  @@index([fromAddress])
+  @@index([toAddress])
+  @@index([protocol])
+  @@index([blockTimestamp(sort: Desc)])
+  @@index([actionType])
+  @@index([protocol, blockTimestamp(sort: Desc)])
+  @@map("transactions")
+}
+
+// ── Token Transfers ───────────────────────────────────────────
+
+model TokenTransfer {
+  id              Int      @id @default(autoincrement())
+  txHash          String   @map("tx_hash") @db.VarChar(66)
+  tokenAddress    String   @map("token_address") @db.VarChar(42)
+  tokenSymbol     String?  @map("token_symbol") @db.VarChar(20)
+  fromAddress     String   @map("from_address") @db.VarChar(42)
+  toAddress       String   @map("to_address") @db.VarChar(42)
+  amount          Decimal
+  decimals        Int?
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  transaction     Transaction @relation(fields: [txHash], references: [txHash])
+
+  @@index([fromAddress])
+  @@index([toAddress])
+  @@index([tokenSymbol])
+  @@index([tokenAddress])
+  @@map("token_transfers")
+}
+
+// ── Wallet Positions (cross-protocol) ─────────────────────────
+
+model WalletPosition {
+  id             Int      @id @default(autoincrement())
+  walletAddress  String   @map("wallet_address") @db.VarChar(42)
+  protocol       String   @db.VarChar(20)
+  positionType   String   @map("position_type") @db.VarChar(30) // vault, lp_position, stake, guardian, order
+  positionData   Json     @map("position_data") // Protocol-specific position details
+  lastUpdated    DateTime @default(now()) @map("last_updated")
+
+  @@index([walletAddress, protocol])
+  @@index([protocol, positionType])
+  @@map("wallet_positions")
+}
+
+// ── Protocol Metrics (aggregated) ─────────────────────────────
+
+model ProtocolMetric {
+  id           Int      @id @default(autoincrement())
+  protocol     String   @db.VarChar(20)
+  metricName   String   @map("metric_name") @db.VarChar(50) // tvl, daily_volume, unique_users, etc.
+  metricValue  Decimal  @map("metric_value")
+  timestamp    DateTime
+  granularity  String   @default("hourly") @db.VarChar(10) // hourly, daily, weekly
+
+  @@index([protocol, metricName, timestamp(sort: Desc)])
+  @@map("protocol_metrics")
+}
+
+// ── Indexed Blocks (for tracking sync progress) ───────────────
+
+model IndexedBlock {
+  id           Int      @id @default(autoincrement())
+  blockNumber  BigInt   @unique @map("block_number")
+  blockHash    String   @map("block_hash") @db.VarChar(66)
+  timestamp    DateTime
+  txCount      Int      @map("tx_count")
+  oecTxCount   Int      @default(0) @map("oec_tx_count") // Oeconomia-related tx count
+  indexedAt     DateTime @default(now()) @map("indexed_at")
+
+  @@index([blockNumber(sort: Desc)])
+  @@map("indexed_blocks")
+}

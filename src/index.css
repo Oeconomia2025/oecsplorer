@@ -1,0 +1,146 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Override Tailwind's default border-color (#e5e7eb) in dark mode
+   so any bare `border` class doesn't produce white lines */
+@layer base {
+  .dark *, .dark ::before, .dark ::after {
+    border-color: var(--bd-primary);
+  }
+}
+
+/* ============================================================
+   Theme CSS Variables
+   ============================================================ */
+
+:root {
+  /* Backgrounds */
+  --th-page: #fbfcfe;
+  --th-surface: #F4F4F5;
+  --th-elevated: #E4E4E7;
+  --th-header: #fbfcfe;
+  --th-subnav: #F4F4F5;
+
+  /* Text */
+  --tx-primary: #18181B;
+  --tx-secondary: #3F3F46;
+  --tx-tertiary: #52525B;
+  --tx-muted: #71717A;
+  --tx-faint: #A1A1AA;
+
+  /* Borders */
+  --bd-primary: #D4D4D8;
+  --bd-secondary: #E4E4E7;
+  --bd-subtle: #F4F4F5;
+
+  /* Accents */
+  --accent-link: #B45309;
+  --accent-link-hover: #92400E;
+  --accent-gold: #C9A84C;
+
+  /* Status */
+  --status-success: #16A34A;
+  --status-error: #DC2626;
+  --status-live: #22C55E;
+
+  /* Inputs */
+  --input-bg: #F4F4F5;
+  --input-border: #D4D4D8;
+  --input-placeholder: #A1A1AA;
+  --input-focus-border: rgba(180, 83, 9, 0.5);
+  --input-focus-ring: rgba(180, 83, 9, 0.2);
+
+  /* Buttons */
+  --btn-primary-bg: rgba(180, 83, 9, 0.15);
+  --btn-primary-text: #B45309;
+  --btn-primary-border: rgba(180, 83, 9, 0.3);
+  --btn-secondary-bg: #E4E4E7;
+  --btn-secondary-text: #3F3F46;
+  --btn-hover-bg: #F4F4F5;
+
+  /* Misc */
+  --code-bg: rgba(0, 0, 0, 0.05);
+  --scrollbar-track: #F4F4F5;
+  --scrollbar-thumb: #D4D4D8;
+  --scrollbar-thumb-hover: #A1A1AA;
+}
+
+.dark {
+  /* Backgrounds — Oeconomia.io navy palette */
+  --th-page: #0b0f16;
+  --th-surface: #1a1f2e;
+  --th-elevated: #232a38;
+  --th-header: #0b0f16;
+  --th-subnav: #1a1f2e;
+
+  /* Text */
+  --tx-primary: #fafafa;
+  --tx-secondary: #e6edf3;
+  --tx-tertiary: #9CA3AF;
+  --tx-muted: #6b7280;
+  --tx-faint: #404858;
+
+  /* Borders — very subtle on dark navy */
+  --bd-primary: #1e293b;
+  --bd-secondary: #151d2c;
+  --bd-subtle: rgba(30, 41, 59, 0.2);
+
+  /* Accents — OEC gold + cyan */
+  --accent-link: #fbd34d;
+  --accent-link-hover: #00d4ff;
+  --accent-gold: #C9A84C;
+
+  /* Status — Oeconomia.io crypto colors */
+  --status-success: #22ab94;
+  --status-error: #f7525f;
+  --status-live: #22ab94;
+
+  /* Inputs */
+  --input-bg: #1a1f2e;
+  --input-border: #232a38;
+  --input-placeholder: #6b7280;
+  --input-focus-border: rgba(0, 212, 255, 0.4);
+  --input-focus-ring: rgba(0, 212, 255, 0.15);
+
+  /* Buttons */
+  --btn-primary-bg: rgba(251, 211, 77, 0.15);
+  --btn-primary-text: #fbd34d;
+  --btn-primary-border: rgba(251, 211, 77, 0.3);
+  --btn-secondary-bg: #232a38;
+  --btn-secondary-text: #e6edf3;
+  --btn-hover-bg: rgba(35, 42, 56, 0.6);
+
+  /* Misc */
+  --code-bg: #0b0f16;
+  --scrollbar-track: #0b0f16;
+  --scrollbar-thumb: #1e293b;
+  --scrollbar-thumb-hover: #374151;
+}
+
+body {
+  margin: 0;
+  background: var(--th-page);
+  color: var(--tx-primary);
+  font-family: "JetBrains Mono", "Fira Code", "SF Mono", monospace;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
