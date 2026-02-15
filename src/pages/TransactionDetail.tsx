@@ -110,12 +110,50 @@ export default function TransactionDetail() {
           </span>
         } />
         <Row label="Block" value={<span className="font-mono text-tx-secondary">{formatBlockNumber(tx.blockNumber)}</span>} />
-        <Row label="From" value={
-          <Link to={`/address/${tx.fromAddress}`} className="font-mono text-accent-link hover:text-accent-link-hover break-all">{tx.fromAddress}</Link>
-        } />
-        {tx.toAddress && <Row label="To" value={
-          <Link to={`/address/${tx.toAddress}`} className="font-mono text-accent-link hover:text-accent-link-hover break-all">{tx.toAddress}</Link>
-        } />}
+
+        {/* Token Transfers — nested card replacing From/To when available */}
+        {tokenTransfers.length > 0 ? (
+          <div className="rounded-lg border border-bd-primary p-4 space-y-3 my-1">
+            <h3 className="text-xs font-semibold text-tx-muted uppercase tracking-wide">Token Transfers</h3>
+            {tokenTransfers.map((tt, i) => (
+              <div key={i} className="flex flex-col gap-2 py-3 border-b border-bd-secondary last:border-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs text-tx-muted w-12">From</span>
+                  <Link to={`/address/${tt.fromAddress}`} className="font-mono text-sm text-accent-link hover:text-accent-link-hover break-all">
+                    {tt.fromAddress}
+                  </Link>
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs text-tx-muted w-12">To</span>
+                  <Link to={`/address/${tt.toAddress}`} className="font-mono text-sm text-accent-link hover:text-accent-link-hover break-all">
+                    {tt.toAddress}
+                  </Link>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-tx-muted w-12">Amount</span>
+                  <span className="font-mono text-sm text-tx-primary font-medium">
+                    {formatTokenAmount(tt.amount, tt.decimals || 18, 2)}
+                  </span>
+                  {tt.tokenSymbol && (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-oec-gold/10 text-oec-gold border border-oec-gold/20">
+                      {tt.tokenSymbol}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <>
+            <Row label="From" value={
+              <Link to={`/address/${tx.fromAddress}`} className="font-mono text-accent-link hover:text-accent-link-hover break-all">{tx.fromAddress}</Link>
+            } />
+            {tx.toAddress && <Row label="To" value={
+              <Link to={`/address/${tx.toAddress}`} className="font-mono text-accent-link hover:text-accent-link-hover break-all">{tx.toAddress}</Link>
+            } />}
+          </>
+        )}
+
         <Row label="Value" value={<span className="font-mono text-tx-secondary">{weiToEth(tx.valueWei || "0")} ETH</span>} />
         <Row label="Gas Used" value={<span className="font-mono text-tx-tertiary">{Number(tx.gasUsed).toLocaleString()}</span>} />
         <Row label="Gas Price" value={<span className="font-mono text-tx-tertiary">{formatGwei(tx.gasPrice || "0")} Gwei</span>} />
@@ -123,40 +161,6 @@ export default function TransactionDetail() {
           <span className="text-tx-tertiary">{new Date(tx.blockTimestamp).toLocaleString()} ({timeAgo(tx.blockTimestamp)})</span>
         } />}
       </div>
-
-      {/* Token Transfers Section */}
-      {tokenTransfers.length > 0 && (
-        <div className="p-6 rounded-xl border border-bd-primary bg-th-surface space-y-3">
-          <h2 className="text-sm font-semibold text-tx-primary">Token Transfers</h2>
-          {tokenTransfers.map((tt, i) => (
-            <div key={i} className="flex flex-col gap-2 py-3 border-b border-bd-secondary last:border-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs text-tx-muted">From</span>
-                <Link to={`/address/${tt.fromAddress}`} className="font-mono text-sm text-accent-link hover:text-accent-link-hover break-all">
-                  {tt.fromAddress}
-                </Link>
-              </div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs text-tx-muted">To</span>
-                <Link to={`/address/${tt.toAddress}`} className="font-mono text-sm text-accent-link hover:text-accent-link-hover break-all">
-                  {tt.toAddress}
-                </Link>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-tx-muted">Amount</span>
-                <span className="font-mono text-sm text-tx-primary font-medium">
-                  {formatTokenAmount(tt.amount, tt.decimals || 18, 2)}
-                </span>
-                {tt.tokenSymbol && (
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-oec-gold/10 text-oec-gold border border-oec-gold/20">
-                    {tt.tokenSymbol}
-                  </span>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
 
       {/* Decoded Data */}
       {tx.decodedData && (
