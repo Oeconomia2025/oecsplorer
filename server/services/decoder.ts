@@ -34,6 +34,8 @@ export interface DecodedEvent {
 
 const ACTION_LABELS: Record<string, Record<string, string>> = {
   oeconomia: {
+    stake:              "Guardian Staked OEC",
+    unstake:            "Guardian Unstaked OEC",
     stakeOEC:           "Guardian Staked OEC",
     unstakeOEC:         "Guardian Unstaked OEC",
     vote:               "Governance Vote Cast",
@@ -108,12 +110,20 @@ const ACTION_LABELS: Record<string, Record<string, string>> = {
 
 const PROTOCOL_ABIS: Record<string, string[]> = {
   oeconomia: [
+    // Real deployed staking contract
+    "function stake(uint256 _packageId, uint256 _amount) external",
+    "function unstake(uint256 _packageId) external",
+    // Legacy / future governance functions
     "function stakeOEC(uint256 amount) external",
     "function unstakeOEC(uint256 amount) external",
     "function vote(uint256 proposalId, bool support) external",
     "function createProposal(string description, bytes[] calldatas) external returns (uint256)",
     "function executeProposal(uint256 proposalId) external",
     "function claimRewards() external",
+    // Events from deployed staking contract
+    "event Staked(uint256 indexed gameCounter, address indexed user, uint256 amount)",
+    "event Unstaked(uint256 indexed gameCounter, address indexed user, uint256 amount)",
+    // Legacy / future events
     "event GuardianStaked(address indexed guardian, uint256 amount)",
     "event GuardianUnstaked(address indexed guardian, uint256 amount)",
     "event VoteCast(address indexed voter, uint256 proposalId, bool support, uint256 weight)",
@@ -177,6 +187,15 @@ const PROTOCOL_ABIS: Record<string, string[]> = {
     "event TemplateRegistered(uint256 indexed templateId, string name, address registrar)",
   ],
 };
+
+// -- Common ABI (ERC-20 Transfer, Approval, etc.) --------------------------
+
+const COMMON_ABI = [
+  "event Transfer(address indexed from, address indexed to, uint256 value)",
+  "event Approval(address indexed owner, address indexed spender, uint256 value)",
+];
+
+const commonInterface = new ethers.Interface(COMMON_ABI);
 
 // -- Decoder Class ----------------------------------------------------------
 
@@ -255,6 +274,22 @@ export class ProtocolDecoder {
           }
         } catch {
           // Not from this protocol's ABI
+        }
+
+        // Try common ERC-20 interface (Transfer, Approval)
+        try {
+          const parsed = commonInterface.parseLog({ topics: log.topics, data: log.data });
+          if (parsed) {
+            decodedEvents.push({
+              name: parsed.name,
+              args: Object.fromEntries(
+                Object.entries(parsed.args.toObject()).filter(([key]) => isNaN(Number(key)))
+              ),
+            });
+            continue;
+          }
+        } catch {
+          // Not a common event
         }
 
         // Try other protocol interfaces (cross-protocol events)

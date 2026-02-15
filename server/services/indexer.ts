@@ -12,6 +12,7 @@ import { ProtocolDecoder } from "./decoder";
 import {
   buildAddressToProtocolMap,
   getAllContractAddresses,
+  TOKENS,
 } from "../../src/utils/constants";
 import { Alchemy, Network, AssetTransfersCategory } from "alchemy-sdk";
 
@@ -39,6 +40,70 @@ const decoder = new ProtocolDecoder(decoderMap);
 let lastIndexedBlock = 0;
 let broadcastFn: ((event: string, data: unknown) => void) | null = null;
 let pollTimer: ReturnType<typeof setInterval> | null = null;
+
+// -- Token Transfer Helper --------------------------------------------------
+
+/** Resolve token symbol from known tokens list */
+function resolveTokenSymbol(contractAddress: string): { symbol: string | null; decimals: number | null } {
+  const token = TOKENS.find(
+    (t) => t.address.toLowerCase() === contractAddress.toLowerCase()
+  );
+  return token ? { symbol: token.symbol, decimals: token.decimals } : { symbol: null, decimals: null };
+}
+
+/** Store token transfer records extracted from decoded events */
+async function storeTokenTransfers(
+  txHash: string,
+  decodedEvents: Array<{ name: string; args: Record<string, unknown> }>,
+  logs: Array<{ address: string; topics: string[]; data: string }> | undefined
+) {
+  if (!decodedEvents || !logs) return;
+
+  // Match Transfer events with their log addresses (to get the token contract)
+  let logIndex = 0;
+  for (const event of decodedEvents) {
+    if (event.name !== "Transfer") {
+      logIndex++;
+      continue;
+    }
+
+    // Find the corresponding log to get the token contract address
+    const fromAddr = String(event.args.from || "").toLowerCase();
+    const toAddr = String(event.args.to || "").toLowerCase();
+    const value = String(event.args.value || "0");
+
+    // Search logs for the matching Transfer event
+    let tokenAddress = "";
+    for (let i = logIndex; i < logs.length; i++) {
+      // Transfer topic0 = keccak256("Transfer(address,address,uint256)")
+      if (logs[i].topics[0] === "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef") {
+        tokenAddress = logs[i].address.toLowerCase();
+        logIndex = i + 1;
+        break;
+      }
+    }
+
+    if (!tokenAddress) continue;
+
+    const { symbol, decimals } = resolveTokenSymbol(tokenAddress);
+
+    try {
+      await prisma.tokenTransfer.create({
+        data: {
+          txHash,
+          tokenAddress,
+          tokenSymbol: symbol,
+          fromAddress: fromAddr,
+          toAddress: toAddr,
+          amount: value,
+          decimals,
+        },
+      });
+    } catch (err) {
+      // Skip duplicates or errors silently
+    }
+  }
+}
 
 // -- Public API -------------------------------------------------------------
 
@@ -191,6 +256,9 @@ async function pollForTransactions() {
             },
             update: {},
           });
+
+          // Store token transfers from decoded events
+          await storeTokenTransfers(txHash, decoded.decodedEvents, fullTx.logs);
 
           totalProcessed++;
 

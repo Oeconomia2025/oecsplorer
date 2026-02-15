@@ -23,10 +23,11 @@ const httpServer = createServer(app);
 
 const PORT = process.env.PORT || 3001;
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
+const ALLOWED_ORIGINS = CLIENT_URL.split(",").map((s) => s.trim());
 
 // -- Middleware --------------------------------------------------------------
 
-app.use(cors({ origin: CLIENT_URL }));
+app.use(cors({ origin: ALLOWED_ORIGINS }));
 app.use(express.json({ limit: "10mb" })); // Alchemy webhooks can be large
 
 // Request logging
@@ -40,7 +41,7 @@ app.use((req, _res, next) => {
 // -- WebSocket Setup --------------------------------------------------------
 
 const io = new SocketIOServer(httpServer, {
-  cors: { origin: CLIENT_URL, methods: ["GET", "POST"] },
+  cors: { origin: ALLOWED_ORIGINS, methods: ["GET", "POST"] },
 });
 
 io.on("connection", (socket) => {

@@ -21,7 +21,7 @@ import {
 } from "../services/alchemy";
 import { ProtocolDecoder } from "../services/decoder";
 import { buildAddressToProtocolMap, PROTOCOLS, TOKENS } from "../../src/utils/constants";
-import { prisma } from "../db";
+import { prisma, sanitizeForJson } from "../db";
 
 const router = Router();
 
@@ -74,7 +74,10 @@ router.get("/tx/:hash", async (req: Request, res: Response) => {
     const { hash } = req.params;
 
     // Check PostgreSQL cache first
-    const cached = await prisma.transaction.findUnique({ where: { txHash: hash } });
+    const cached = await prisma.transaction.findUnique({
+      where: { txHash: hash },
+      include: { tokenTransfers: true },
+    });
     if (cached) {
       res.json({
         txHash: cached.txHash,
@@ -90,6 +93,14 @@ router.get("/tx/:hash", async (req: Request, res: Response) => {
         actionType: cached.actionType,
         functionName: cached.functionName || null,
         decodedData: cached.decodedData,
+        tokenTransfers: cached.tokenTransfers.map((tt) => ({
+          tokenAddress: tt.tokenAddress,
+          tokenSymbol: tt.tokenSymbol,
+          fromAddress: tt.fromAddress,
+          toAddress: tt.toAddress,
+          amount: tt.amount.toString(),
+          decimals: tt.decimals,
+        })),
       });
       return;
     }
@@ -119,6 +130,10 @@ router.get("/tx/:hash", async (req: Request, res: Response) => {
     } catch {}
 
     // Return in the same shape as the cached response
+    const sanitizedDecoded = decoded
+      ? sanitizeForJson({ args: decoded.decodedArgs, events: decoded.decodedEvents })
+      : null;
+
     res.json({
       txHash: fullTx.hash,
       blockNumber: fullTx.blockNumber,
@@ -132,9 +147,8 @@ router.get("/tx/:hash", async (req: Request, res: Response) => {
       protocol: decoded?.protocol || "unknown",
       actionType: decoded?.actionType || "External Transaction",
       functionName: decoded?.functionName || null,
-      decodedData: decoded
-        ? { args: decoded.decodedArgs, events: decoded.decodedEvents }
-        : null,
+      decodedData: sanitizedDecoded,
+      tokenTransfers: [],
     });
   } catch (error) {
     console.error("[API] Error fetching tx:", error);

@@ -9,7 +9,8 @@
     "dev:client": "vite",
     "dev:server": "tsx watch server/index.ts",
     "build": "vite build",
-    "start": "node dist/server/index.js",
+    "build:server": "prisma generate",
+    "start": "tsx server/index.ts",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
@@ -29,7 +30,9 @@
     "recharts": "^2.13.3",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
-    "ws": "^8.18.0"
+    "ws": "^8.18.0",
+    "prisma": "^5.22.0",
+    "tsx": "^4.19.2"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
@@ -41,9 +44,7 @@
     "autoprefixer": "^10.4.20",
     "concurrently": "^9.1.0",
     "postcss": "^8.4.49",
-    "prisma": "^5.22.0",
     "tailwindcss": "^3.4.15",
-    "tsx": "^4.19.2",
     "typescript": "^5.6.3",
     "vite": "^6.0.0"
   }
