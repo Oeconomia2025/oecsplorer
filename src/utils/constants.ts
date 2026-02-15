@@ -91,7 +91,7 @@ export const PROTOCOLS: Record<ProtocolId, ProtocolConfig> = {
     id: "iridescia",
     name: "Iridescia",
     shortName: "IRID",
-    color: "#f8e6d8",
+    color: "#c4956a",
     icon: "🛠",
     logo: "https://pub-37d61a7eb7ae45898b46702664710cb2.r2.dev/IRID%20logo.png",
     description: "Developer infrastructure — contract deployment, templates, security frameworks",
