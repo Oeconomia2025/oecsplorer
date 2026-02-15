@@ -15,6 +15,7 @@ export interface LiveTransaction {
   protocol: string;
   action: string;
   from: string;
+  to: string;
   value: string;
   timestamp: string;
 }

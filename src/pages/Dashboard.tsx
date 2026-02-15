@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { PROTOCOLS, TOKENS } from "@/utils/constants";
-import { ProtocolBadge, ProtocolIcon, LiveIndicator, EmptyState } from "@/components/shared";
+import { ProtocolBadge, ProtocolIcon, LiveIndicator, EmptyState, CopyButton } from "@/components/shared";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import type { LiveTransaction } from "@/hooks/useWebSocket";
-import { truncateAddress, truncateTxHash, timeAgo } from "@/utils/formatters";
+import { truncateAddress, timeAgo, etherscanLink } from "@/utils/formatters";
+import { CHAIN_ID } from "@/utils/constants";
 import { fetchLatestBlock, fetchRecentTransactions } from "@/services/api";
 import type { ProtocolId } from "@/utils/constants";
 
@@ -161,6 +162,7 @@ export default function Dashboard() {
                   <th className="text-left px-4 py-2.5 font-medium">Tx Hash</th>
                   <th className="text-left px-4 py-2.5 font-medium">Action</th>
                   <th className="text-left px-4 py-2.5 font-medium">From</th>
+                  <th className="text-left px-4 py-2.5 font-medium">To</th>
                   <th className="text-right px-4 py-2.5 font-medium">Time</th>
                 </tr>
               </thead>
@@ -171,15 +173,39 @@ export default function Dashboard() {
                       <ProtocolBadge protocol={tx.protocol} />
                     </td>
                     <td className="px-4 py-2.5">
-                      <Link to={`/tx/${tx.hash}`} className="text-accent-link hover:text-accent-link-hover text-sm font-mono">
-                        {truncateTxHash(tx.hash)}
-                      </Link>
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={etherscanLink("tx", tx.hash, CHAIN_ID)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="View on Etherscan"
+                        >
+                          <img
+                            src="https://pub-37d61a7eb7ae45898b46702664710cb2.r2.dev/Etherscan.png"
+                            alt="Etherscan"
+                            className="w-4 h-4 object-contain"
+                          />
+                        </a>
+                        <Link to={`/tx/${tx.hash}`} className="text-accent-link hover:text-accent-link-hover text-sm font-mono">
+                          {tx.hash.slice(0, 14)}...
+                        </Link>
+                        <CopyButton text={tx.hash} />
+                      </div>
                     </td>
                     <td className="px-4 py-2.5 text-sm text-tx-secondary">{tx.action}</td>
                     <td className="px-4 py-2.5">
                       <Link to={`/address/${tx.from}`} className="text-tx-tertiary hover:text-tx-primary text-sm font-mono">
                         {truncateAddress(tx.from)}
                       </Link>
+                    </td>
+                    <td className="px-4 py-2.5">
+                      {tx.to ? (
+                        <Link to={`/address/${tx.to}`} className="text-tx-tertiary hover:text-tx-primary text-sm font-mono">
+                          {truncateAddress(tx.to)}
+                        </Link>
+                      ) : (
+                        <span className="text-tx-faint text-sm">—</span>
+                      )}
                     </td>
                     <td className="px-4 py-2.5 text-right text-sm text-tx-muted">
                       {timeAgo(tx.timestamp)}

@@ -38,9 +38,10 @@ export function formatTokenAmount(
   const value = typeof amount === "string" ? BigInt(amount) : amount;
   const num = Number(value) / Math.pow(10, tokenDecimals);
 
-  if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(2)}M`;
-  if (num >= 1_000) return `${(num / 1_000).toFixed(2)}K`;
-  return num.toFixed(displayDecimals);
+  return num.toLocaleString(undefined, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: displayDecimals,
+  });
 }
 
 /**

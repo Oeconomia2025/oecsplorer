@@ -158,6 +158,7 @@ router.post("/alchemy", async (req: Request, res: Response) => {
             protocol: decoded.protocol,
             action: decoded.actionType,
             from: fullTx.from,
+            to: fullTx.to || "",
             value: fullTx.value,
             timestamp: new Date().toISOString(),
           },

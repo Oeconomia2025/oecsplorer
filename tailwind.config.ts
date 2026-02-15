@@ -61,6 +61,16 @@ export default {
       fontFamily: {
         mono: ["JetBrains Mono", "Fira Code", "SF Mono", "monospace"],
       },
+      borderRadius: {
+        none: "0",
+        sm: "0.063rem",   // 1px (was 2px → 3px, reduced by 2)
+        DEFAULT: "0.125rem", // 2px (was 4px, reduced by 2)
+        md: "0.25rem",    // 4px (was 6px, reduced by 2)
+        lg: "0.375rem",   // 6px (was 8px, reduced by 2)
+        xl: "0.625rem",   // 10px (was 12px, reduced by 2)
+        "2xl": "0.75rem", // 12px (was 16px, reduced by ~4 but keeping proportional)
+        full: "9999px",
+      },
     },
   },
   plugins: [],

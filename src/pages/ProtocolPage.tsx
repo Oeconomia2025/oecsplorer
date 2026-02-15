@@ -1,13 +1,26 @@
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { PROTOCOLS } from "@/utils/constants";
 import { ProtocolBadge, ProtocolIcon, EmptyState } from "@/components/shared";
-import { truncateAddress, etherscanLink } from "@/utils/formatters";
+import { truncateAddress, etherscanLink, timeAgo } from "@/utils/formatters";
 import { CHAIN_ID } from "@/utils/constants";
 import type { ProtocolId } from "@/utils/constants";
+import { fetchProtocolTransactions } from "@/services/api";
 
 export default function ProtocolPage() {
   const { protocolId } = useParams<{ protocolId: string }>();
   const protocol = PROTOCOLS[protocolId as ProtocolId];
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [txLoading, setTxLoading] = useState(true);
+
+  useEffect(() => {
+    if (!protocolId) return;
+    setTxLoading(true);
+    fetchProtocolTransactions(protocolId, 20)
+      .then((data: any) => setTransactions(data.transactions || []))
+      .catch(() => setTransactions([]))
+      .finally(() => setTxLoading(false));
+  }, [protocolId]);
 
   if (!protocol) {
     return (
@@ -97,21 +110,74 @@ export default function ProtocolPage() {
         </div>
       </div>
 
-      {/* Activity (placeholder) */}
+      {/* Activity */}
       <div>
         <h2 className="text-sm font-semibold text-tx-tertiary uppercase tracking-wider mb-3">
           Recent Activity
         </h2>
-        <EmptyState
-          title={`No ${protocol.name} transactions indexed yet`}
-          description={
-            hasDeployed
-              ? "Transactions will appear here once Alchemy webhooks are configured and the indexer starts processing events."
-              : `${protocol.name} contracts haven't been deployed yet. Activity will be tracked once contracts are live.`
-          }
-          icon={protocol.icon}
-          logoUrl={protocol.logo}
-        />
+        {txLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <span className="text-sm text-tx-muted">Loading transactions...</span>
+          </div>
+        ) : transactions.length > 0 ? (
+          <div className="border border-bd-primary rounded-lg overflow-hidden">
+            <table className="w-full">
+              <thead>
+                <tr className="text-xs text-tx-muted border-b border-bd-primary">
+                  <th className="text-left px-4 py-2.5 font-medium">Tx Hash</th>
+                  <th className="text-left px-4 py-2.5 font-medium">Action</th>
+                  <th className="text-left px-4 py-2.5 font-medium">From</th>
+                  <th className="text-right px-4 py-2.5 font-medium">Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                {transactions.map((tx: any) => (
+                  <tr key={tx.txHash} className="border-b border-bd-secondary hover:bg-btn-hover-bg transition-colors">
+                    <td className="px-4 py-2.5">
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={etherscanLink("tx", tx.txHash, CHAIN_ID)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="View on Etherscan"
+                        >
+                          <img
+                            src="https://pub-37d61a7eb7ae45898b46702664710cb2.r2.dev/Etherscan.png"
+                            alt="Etherscan"
+                            className="w-4 h-4 object-contain"
+                          />
+                        </a>
+                        <Link to={`/tx/${tx.txHash}`} className="text-accent-link hover:text-accent-link-hover text-sm font-mono">
+                          {tx.txHash.slice(0, 14)}
+                        </Link>
+                      </div>
+                    </td>
+                    <td className="px-4 py-2.5 text-sm text-tx-secondary">{tx.actionType || "Transaction"}</td>
+                    <td className="px-4 py-2.5">
+                      <Link to={`/address/${tx.fromAddress}`} className="text-tx-tertiary hover:text-tx-primary text-sm font-mono">
+                        {truncateAddress(tx.fromAddress)}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-2.5 text-right text-sm text-tx-muted">
+                      {timeAgo(tx.blockTimestamp)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <EmptyState
+            title={`No ${protocol.name} transactions indexed yet`}
+            description={
+              hasDeployed
+                ? "Transactions will appear here once the indexer processes events for this protocol."
+                : `${protocol.name} contracts haven't been deployed yet. Activity will be tracked once contracts are live.`
+            }
+            icon={protocol.icon}
+            logoUrl={protocol.logo}
+          />
+        )}
       </div>
     </div>
   );

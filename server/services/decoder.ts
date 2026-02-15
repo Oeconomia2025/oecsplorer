@@ -43,6 +43,9 @@ const ACTION_LABELS: Record<string, Record<string, string>> = {
     executeProposal:    "Proposal Executed",
     claimRewards:       "Claimed Guardian Rewards",
     delegateVotes:      "Votes Delegated",
+    transfer:           "OEC Transfer",
+    transferFrom:       "OEC Transfer",
+    approve:            "OEC Approval",
   },
   alluria: {
     openVault:          "Opened Alluria Vault",
@@ -58,30 +61,56 @@ const ACTION_LABELS: Record<string, Record<string, string>> = {
   },
   eloqura: {
     // Uniswap V2 style
-    swapExactTokensForTokens:    "Token Swap",
-    swapTokensForExactTokens:    "Token Swap",
-    swapExactETHForTokens:       "ETH → Token Swap",
-    swapTokensForExactETH:       "Token → ETH Swap",
-    swapExactTokensForETH:       "Token → ETH Swap",
-    addLiquidity:                "Added Liquidity",
-    addLiquidityETH:             "Added ETH Liquidity",
-    removeLiquidity:             "Removed Liquidity",
-    removeLiquidityETH:          "Removed ETH Liquidity",
-    // Uniswap V3 style
-    exactInputSingle:            "V3 Swap (Exact In)",
-    exactOutputSingle:           "V3 Swap (Exact Out)",
-    exactInput:                  "V3 Multi-hop Swap",
-    exactOutput:                 "V3 Multi-hop Swap",
-    mint:                        "V3 Position Created",
-    increaseLiquidity:           "V3 Liquidity Increased",
-    decreaseLiquidity:           "V3 Liquidity Decreased",
-    collect:                     "V3 Fees Collected",
+    swapExactTokensForTokens:              "Token Swap",
+    swapTokensForExactTokens:              "Token Swap",
+    swapExactETHForTokens:                 "ETH → Token Swap",
+    swapTokensForExactETH:                 "Token → ETH Swap",
+    swapExactTokensForETH:                 "Token → ETH Swap",
+    swapExactTokensForTokensSupportingFeeOnTransferTokens: "Token Swap",
+    swapExactETHForTokensSupportingFeeOnTransferTokens:    "ETH → Token Swap",
+    swapExactTokensForETHSupportingFeeOnTransferTokens:    "Token → ETH Swap",
+    addLiquidity:                          "Added Liquidity",
+    addLiquidityETH:                       "Added ETH Liquidity",
+    removeLiquidity:                       "Removed Liquidity",
+    removeLiquidityETH:                    "Removed ETH Liquidity",
+    removeLiquidityETHWithPermit:          "Removed ETH Liquidity",
+    removeLiquidityWithPermit:             "Removed Liquidity",
+    // Uniswap V3 SwapRouter
+    exactInputSingle:                      "V3 Swap (Exact In)",
+    exactOutputSingle:                     "V3 Swap (Exact Out)",
+    exactInput:                            "V3 Multi-hop Swap",
+    exactOutput:                           "V3 Multi-hop Swap",
+    multicall:                             "V3 Multicall",
+    "multicall(uint256,bytes[])":          "V3 Multicall",
+    "multicall(bytes32,bytes[])":          "V3 Multicall",
+    "multicall(bytes[])":                  "V3 Multicall",
+    selfPermit:                            "Token Permit",
+    selfPermitAllowed:                     "Token Permit",
+    selfPermitAllowedIfNecessary:          "Token Permit",
+    selfPermitIfNecessary:                 "Token Permit",
+    unwrapWETH9:                           "Unwrap WETH",
+    unwrapWETH9WithFee:                    "Unwrap WETH",
+    refundETH:                             "Refund ETH",
+    sweepToken:                            "Sweep Token",
+    sweepTokenWithFee:                     "Sweep Token",
+    // Uniswap V3 NonfungiblePositionManager
+    mint:                                  "V3 Position Created",
+    increaseLiquidity:                     "V3 Liquidity Increased",
+    decreaseLiquidity:                     "V3 Liquidity Decreased",
+    collect:                               "V3 Fees Collected",
+    burn:                                  "V3 Position Burned",
+    // Uniswap Universal Router
+    execute:                               "Universal Router Swap",
+    // Common ERC-20
+    transfer:                              "Token Transfer",
+    transferFrom:                          "Token Transfer",
+    approve:                               "Token Approval",
     // Bridge
-    bridgeTokens:                "Cross-Chain Bridge",
-    claimBridgedTokens:          "Claimed Bridged Tokens",
+    bridgeTokens:                          "Cross-Chain Bridge",
+    claimBridgedTokens:                    "Claimed Bridged Tokens",
     // Yield
-    optimizeYield:               "Yield Optimization",
-    compoundRewards:             "Rewards Compounded",
+    optimizeYield:                         "Yield Optimization",
+    compoundRewards:                       "Rewards Compounded",
   },
   artivya: {
     placeOrder:          "Order Placed",
@@ -120,6 +149,10 @@ const PROTOCOL_ABIS: Record<string, string[]> = {
     "function createProposal(string description, bytes[] calldatas) external returns (uint256)",
     "function executeProposal(uint256 proposalId) external",
     "function claimRewards() external",
+    // ERC-20 functions (OEC token)
+    "function transfer(address to, uint256 amount) external returns (bool)",
+    "function transferFrom(address from, address to, uint256 amount) external returns (bool)",
+    "function approve(address spender, uint256 amount) external returns (bool)",
     // Events from deployed staking contract
     "event Staked(uint256 indexed gameCounter, address indexed user, uint256 amount)",
     "event Unstaked(uint256 indexed gameCounter, address indexed user, uint256 amount)",
@@ -148,18 +181,47 @@ const PROTOCOL_ABIS: Record<string, string[]> = {
     "event StabilityPoolWithdrawal(address indexed depositor, uint256 amount)",
   ],
   eloqura: [
-    // V2 Router
+    // ── V2 Router ──
     "function swapExactTokensForTokens(uint256 amountIn, uint256 amountOutMin, address[] path, address to, uint256 deadline) external returns (uint256[])",
+    "function swapTokensForExactTokens(uint256 amountOut, uint256 amountInMax, address[] path, address to, uint256 deadline) external returns (uint256[])",
     "function swapExactETHForTokens(uint256 amountOutMin, address[] path, address to, uint256 deadline) external payable returns (uint256[])",
+    "function swapTokensForExactETH(uint256 amountOut, uint256 amountInMax, address[] path, address to, uint256 deadline) external returns (uint256[])",
     "function swapExactTokensForETH(uint256 amountIn, uint256 amountOutMin, address[] path, address to, uint256 deadline) external returns (uint256[])",
+    "function swapExactTokensForTokensSupportingFeeOnTransferTokens(uint256 amountIn, uint256 amountOutMin, address[] path, address to, uint256 deadline) external",
+    "function swapExactETHForTokensSupportingFeeOnTransferTokens(uint256 amountOutMin, address[] path, address to, uint256 deadline) external payable",
+    "function swapExactTokensForETHSupportingFeeOnTransferTokens(uint256 amountIn, uint256 amountOutMin, address[] path, address to, uint256 deadline) external",
     "function addLiquidity(address tokenA, address tokenB, uint256 amountADesired, uint256 amountBDesired, uint256 amountAMin, uint256 amountBMin, address to, uint256 deadline) external returns (uint256, uint256, uint256)",
     "function addLiquidityETH(address token, uint256 amountTokenDesired, uint256 amountTokenMin, uint256 amountETHMin, address to, uint256 deadline) external payable returns (uint256, uint256, uint256)",
     "function removeLiquidity(address tokenA, address tokenB, uint256 liquidity, uint256 amountAMin, uint256 amountBMin, address to, uint256 deadline) external returns (uint256, uint256)",
-    // V3
+    "function removeLiquidityETH(address token, uint256 liquidity, uint256 amountTokenMin, uint256 amountETHMin, address to, uint256 deadline) external returns (uint256, uint256)",
+    "function removeLiquidityWithPermit(address tokenA, address tokenB, uint256 liquidity, uint256 amountAMin, uint256 amountBMin, address to, uint256 deadline, bool approveMax, uint8 v, bytes32 r, bytes32 s) external returns (uint256, uint256)",
+    "function removeLiquidityETHWithPermit(address token, uint256 liquidity, uint256 amountTokenMin, uint256 amountETHMin, address to, uint256 deadline, bool approveMax, uint8 v, bytes32 r, bytes32 s) external returns (uint256, uint256)",
+    // ── V3 SwapRouter ──
     "function exactInputSingle((address tokenIn, address tokenOut, uint24 fee, address recipient, uint256 deadline, uint256 amountIn, uint256 amountOutMinimum, uint160 sqrtPriceLimitX96)) external payable returns (uint256)",
-    // Bridge
+    "function exactOutputSingle((address tokenIn, address tokenOut, uint24 fee, address recipient, uint256 deadline, uint256 amountOut, uint256 amountInMaximum, uint160 sqrtPriceLimitX96)) external payable returns (uint256)",
+    "function exactInput((bytes path, address recipient, uint256 deadline, uint256 amountIn, uint256 amountOutMinimum)) external payable returns (uint256)",
+    "function exactOutput((bytes path, address recipient, uint256 deadline, uint256 amountOut, uint256 amountInMaximum)) external payable returns (uint256)",
+    "function multicall(uint256 deadline, bytes[] data) external payable returns (bytes[])",
+    "function multicall(bytes32 previousBlockhash, bytes[] data) external payable returns (bytes[])",
+    "function multicall(bytes[] data) external payable returns (bytes[])",
+    "function selfPermit(address token, uint256 value, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external payable",
+    "function selfPermitAllowed(address token, uint256 nonce, uint256 expiry, uint8 v, bytes32 r, bytes32 s) external payable",
+    "function selfPermitAllowedIfNecessary(address token, uint256 nonce, uint256 expiry, uint8 v, bytes32 r, bytes32 s) external payable",
+    "function selfPermitIfNecessary(address token, uint256 value, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external payable",
+    "function unwrapWETH9(uint256 amountMinimum, address recipient) external payable",
+    "function unwrapWETH9WithFee(uint256 amountMinimum, address recipient, uint256 feeBips, address feeRecipient) external payable",
+    "function refundETH() external payable",
+    "function sweepToken(address token, uint256 amountMinimum, address recipient) external payable",
+    "function sweepTokenWithFee(address token, uint256 amountMinimum, address recipient, uint256 feeBips, address feeRecipient) external payable",
+    // ── Universal Router ──
+    "function execute(bytes commands, bytes[] inputs, uint256 deadline) external payable",
+    // ── Common ERC-20 functions ──
+    "function transfer(address to, uint256 amount) external returns (bool)",
+    "function transferFrom(address from, address to, uint256 amount) external returns (bool)",
+    "function approve(address spender, uint256 amount) external returns (bool)",
+    // ── Bridge ──
     "function bridgeTokens(address token, uint256 amount, uint256 destChainId, bytes32 recipient) external",
-    // Events
+    // ── Events ──
     "event Swap(address indexed sender, uint256 amount0In, uint256 amount1In, uint256 amount0Out, uint256 amount1Out, address indexed to)",
     "event Mint(address indexed sender, uint256 amount0, uint256 amount1)",
     "event Burn(address indexed sender, uint256 amount0, uint256 amount1, address indexed to)",
@@ -314,10 +376,40 @@ export class ProtocolDecoder {
     }
 
     // Classify into human-readable action
-    const actionType =
-      ACTION_LABELS[protocol]?.[functionName] ||
-      functionName.replace(/([A-Z])/g, " $1").trim() ||
-      "Unknown Action";
+    let actionType = ACTION_LABELS[protocol]?.[functionName];
+
+    if (!actionType && functionName !== "unknown") {
+      // Function was parsed but not in our labels — make camelCase readable
+      // e.g. "exactInputSingle" → "Exact Input Single"
+      actionType = functionName
+        .replace(/([A-Z])/g, " $1")
+        .replace(/^./, (c) => c.toUpperCase())
+        .trim();
+    }
+
+    if (!actionType && decodedEvents.length > 0) {
+      // Couldn't parse function but we have events — infer from the primary event
+      const eventLabels: Record<string, string> = {
+        Transfer: "Token Transfer",
+        Approval: "Token Approval",
+        Swap: "Token Swap",
+        Mint: "Liquidity Added",
+        Burn: "Liquidity Removed",
+        Staked: "Guardian Staked OEC",
+        Unstaked: "Guardian Unstaked OEC",
+      };
+      for (const evt of decodedEvents) {
+        const baseName = evt.name.includes(":") ? evt.name.split(":")[1] : evt.name;
+        if (eventLabels[baseName]) {
+          actionType = eventLabels[baseName];
+          break;
+        }
+      }
+    }
+
+    if (!actionType) {
+      actionType = "Contract Interaction";
+    }
 
     return {
       protocol: protocol as ProtocolId,

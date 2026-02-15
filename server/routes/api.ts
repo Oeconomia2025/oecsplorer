@@ -20,7 +20,13 @@ import {
   getAssetTransfers,
 } from "../services/alchemy";
 import { ProtocolDecoder } from "../services/decoder";
-import { buildAddressToProtocolMap, PROTOCOLS, TOKENS } from "../../src/utils/constants";
+import {
+  buildAddressToProtocolMap,
+  getAllContractAddresses,
+  SHARED_CONTRACTS,
+  PROTOCOLS,
+  TOKENS,
+} from "../../src/utils/constants";
 import { prisma, sanitizeForJson } from "../db";
 
 const router = Router();
@@ -54,6 +60,7 @@ router.get("/transactions/recent", async (req: Request, res: Response) => {
         protocol: tx.protocol,
         action: tx.actionType,
         from: tx.fromAddress,
+        to: tx.toAddress || "",
         value: tx.valueWei.toString(),
         timestamp: tx.blockTimestamp.toISOString(),
       }))
@@ -167,10 +174,22 @@ router.get("/address/:address", async (req: Request, res: Response) => {
     const { address } = req.params;
 
     // Fetch data in parallel
-    const [ethBalance, tokenBalances, recentTransfers] = await Promise.all([
+    const addrLower = address.toLowerCase();
+    const [ethBalance, tokenBalances, recentTransfers, indexedTransactions] = await Promise.all([
       getBalance(address),
       getTokenBalances(address),
       getAssetTransfers({ fromAddress: address, maxCount: 20 }),
+      prisma.transaction.findMany({
+        where: {
+          OR: [
+            { fromAddress: addrLower },
+            { toAddress: addrLower },
+          ],
+        },
+        orderBy: { blockTimestamp: "desc" },
+        take: 50,
+        include: { tokenTransfers: true },
+      }),
     ]);
 
     // Enrich token balances with metadata
@@ -222,6 +241,25 @@ router.get("/address/:address", async (req: Request, res: Response) => {
       tokens: enrichedTokens,
       recentTransfers: recentTransfers.transfers,
       protocolPositions,
+      transactions: indexedTransactions.map((tx) => ({
+        txHash: tx.txHash,
+        blockNumber: Number(tx.blockNumber),
+        blockTimestamp: tx.blockTimestamp.toISOString(),
+        fromAddress: tx.fromAddress,
+        toAddress: tx.toAddress,
+        valueWei: tx.valueWei.toString(),
+        gasUsed: tx.gasUsed.toString(),
+        status: tx.status,
+        protocol: tx.protocol,
+        actionType: tx.actionType,
+        functionName: tx.functionName,
+        tokenTransfers: tx.tokenTransfers.map((tt) => ({
+          tokenAddress: tt.tokenAddress,
+          tokenSymbol: tt.tokenSymbol,
+          amount: tt.amount.toFixed(0),
+          decimals: tt.decimals,
+        })),
+      })),
     });
   } catch (error) {
     console.error("[API] Error fetching address:", error);
@@ -397,6 +435,158 @@ router.get("/protocol/:protocolId/transactions", async (req: Request, res: Respo
   }
 });
 
+// ── Site-Triggered Transaction Tracking ──────────────────────
+
+/**
+ * POST /api/track-tx
+ * Called by Oeconomia sites (Eloqura, staking dapp, etc.) when a user
+ * performs a transaction. Fetches, decodes, and stores the transaction.
+ * This is how transactions on shared/public contracts (e.g., Uniswap V3)
+ * get indexed — only when initiated from an Oeconomia site.
+ */
+router.post("/track-tx", async (req: Request, res: Response) => {
+  try {
+    const { txHash } = req.body;
+
+    if (!txHash || typeof txHash !== "string" || !/^0x[a-fA-F0-9]{64}$/.test(txHash)) {
+      res.status(400).json({ error: "Valid txHash is required" });
+      return;
+    }
+
+    // Already tracked?
+    const existing = await prisma.transaction.findUnique({ where: { txHash } });
+    if (existing) {
+      res.json({ status: "already_tracked", txHash, protocol: existing.protocol, actionType: existing.actionType });
+      return;
+    }
+
+    // Fetch from Alchemy
+    const fullTx = await getFullTransaction(txHash);
+    if (!fullTx) {
+      res.status(404).json({ error: "Transaction not found on chain" });
+      return;
+    }
+
+    const toAddr = fullTx.to.toLowerCase();
+    const inputData = fullTx.input || "";
+
+    // Build full contract set (including shared) for protocol lookup
+    const allContracts = new Set(
+      getAllContractAddresses()
+        .filter((a) => !a.startsWith("0x000000000000000000000000000000000000"))
+        .map((a) => a.toLowerCase())
+    );
+
+    let protocol: string | null = null;
+    let actionType: string | null = null;
+    let functionName: string | null = null;
+    let decodedData: unknown = null;
+    let decodedEvents: Array<{ name: string; args: Record<string, unknown> }> = [];
+
+    // Case 1: Direct call to a tracked contract (exclusive or shared)
+    if (allContracts.has(toAddr)) {
+      const decoded = decoder.decode({
+        to: fullTx.to,
+        input: fullTx.input,
+        value: fullTx.value,
+        logs: fullTx.logs,
+      });
+      protocol = decoded.protocol;
+      actionType = decoded.actionType;
+      functionName = decoded.functionName || null;
+      decodedData = sanitizeForJson({ args: decoded.decodedArgs, events: decoded.decodedEvents });
+      decodedEvents = decoded.decodedEvents;
+    }
+    // Case 2: Token approve where spender is our contract
+    else if (inputData.startsWith("0x095ea7b3") && inputData.length >= 74) {
+      const spenderAddr = "0x" + inputData.slice(34, 74).slice(-40).toLowerCase();
+      if (allContracts.has(spenderAddr)) {
+        protocol = addressMap[spenderAddr] || "eloqura";
+        actionType = "Token Approval";
+        functionName = "approve";
+        decodedData = sanitizeForJson({ args: { spender: spenderAddr, tokenContract: toAddr }, events: [] });
+      }
+    }
+
+    if (!protocol) {
+      // Still store it with a generic label — the user explicitly tracked it from a site
+      protocol = "eloqura"; // default for site-triggered
+      actionType = "Site Transaction";
+      functionName = null;
+      decodedData = null;
+    }
+
+    // Get block timestamp
+    let blockTimestamp = new Date();
+    try {
+      const block = await getBlock(fullTx.blockNumber);
+      if (block) blockTimestamp = new Date(block.timestamp * 1000);
+    } catch {}
+
+    // Store
+    await prisma.transaction.upsert({
+      where: { txHash },
+      create: {
+        txHash,
+        blockNumber: BigInt(fullTx.blockNumber),
+        blockTimestamp,
+        fromAddress: fullTx.from.toLowerCase(),
+        toAddress: toAddr,
+        valueWei: fullTx.value,
+        gasUsed: BigInt(fullTx.gasUsed),
+        gasPrice: fullTx.gasPrice,
+        status: fullTx.status,
+        protocol,
+        actionType,
+        functionName,
+        decodedData: decodedData as any,
+      },
+      update: {},
+    });
+
+    // Store token transfers if we have decoded events
+    if (decodedEvents.length > 0 && fullTx.logs) {
+      // Inline token transfer storage
+      let logIndex = 0;
+      for (const event of decodedEvents) {
+        if (event.name !== "Transfer") { logIndex++; continue; }
+        const fromAddr = String(event.args.from || "").toLowerCase();
+        const evtToAddr = String(event.args.to || "").toLowerCase();
+        const value = String(event.args.value || "0");
+        let tokenAddress = "";
+        for (let i = logIndex; i < fullTx.logs.length; i++) {
+          if (fullTx.logs[i].topics[0] === "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef") {
+            tokenAddress = fullTx.logs[i].address.toLowerCase();
+            logIndex = i + 1;
+            break;
+          }
+        }
+        if (!tokenAddress) continue;
+        const token = TOKENS.find((t) => t.address.toLowerCase() === tokenAddress);
+        try {
+          await prisma.tokenTransfer.create({
+            data: {
+              txHash,
+              tokenAddress,
+              tokenSymbol: token?.symbol || null,
+              fromAddress: fromAddr,
+              toAddress: evtToAddr,
+              amount: value,
+              decimals: token?.decimals || null,
+            },
+          });
+        } catch { /* skip duplicates */ }
+      }
+    }
+
+    console.log(`[API] Tracked tx ${txHash.slice(0, 12)}... as ${protocol}/${actionType}`);
+    res.json({ status: "tracked", txHash, protocol, actionType });
+  } catch (error) {
+    console.error("[API] Error tracking tx:", error);
+    res.status(500).json({ error: "Failed to track transaction" });
+  }
+});
+
 // ── Search Endpoint ───────────────────────────────────────────
 
 /**
@@ -501,6 +691,72 @@ router.get("/overview", async (_req: Request, res: Response) => {
     });
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch overview" });
+  }
+});
+
+// ── Aggregate Statistics ─────────────────────────────────────
+
+/**
+ * GET /api/stats
+ * Aggregate statistics for the Statistics page
+ */
+router.get("/stats", async (_req: Request, res: Response) => {
+  try {
+    const now = new Date();
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    // Total counts
+    const [totalTransactions, txLast24h, txLast7d, uniqueUsersAll, uniqueUsers24h] = await Promise.all([
+      prisma.transaction.count(),
+      prisma.transaction.count({ where: { blockTimestamp: { gte: oneDayAgo } } }),
+      prisma.transaction.count({ where: { blockTimestamp: { gte: sevenDaysAgo } } }),
+      prisma.transaction.groupBy({ by: ["fromAddress"] }),
+      prisma.transaction.groupBy({ by: ["fromAddress"], where: { blockTimestamp: { gte: oneDayAgo } } }),
+    ]);
+
+    // Per-protocol breakdown
+    const protocolBreakdown = await Promise.all(
+      Object.keys(PROTOCOLS).map(async (protocolId) => {
+        const count = await prisma.transaction.count({ where: { protocol: protocolId } });
+        const recent = await prisma.transaction.count({ where: { protocol: protocolId, blockTimestamp: { gte: oneDayAgo } } });
+        return { protocol: protocolId, total: count, last24h: recent };
+      })
+    );
+
+    // Daily transaction counts for last 7 days
+    const dailyCounts: { date: string; count: number }[] = [];
+    for (let i = 6; i >= 0; i--) {
+      const dayStart = new Date(now);
+      dayStart.setDate(dayStart.getDate() - i);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(dayStart);
+      dayEnd.setDate(dayEnd.getDate() + 1);
+      const count = await prisma.transaction.count({
+        where: { blockTimestamp: { gte: dayStart, lt: dayEnd } },
+      });
+      dailyCounts.push({
+        date: dayStart.toISOString().split("T")[0],
+        count,
+      });
+    }
+
+    // Most active protocol
+    const mostActive = protocolBreakdown.reduce((a, b) => (a.total > b.total ? a : b));
+
+    res.json({
+      totalTransactions,
+      txLast24h,
+      txLast7d,
+      uniqueUsersTotal: uniqueUsersAll.length,
+      uniqueUsers24h: uniqueUsers24h.length,
+      protocolBreakdown,
+      dailyCounts,
+      mostActiveProtocol: mostActive.protocol,
+    });
+  } catch (error) {
+    console.error("[API] Error fetching stats:", error);
+    res.status(500).json({ error: "Failed to fetch statistics" });
   }
 });
 

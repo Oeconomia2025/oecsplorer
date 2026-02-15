@@ -32,6 +32,7 @@ export async function fetchRecentTransactions(limit = 20) {
     protocol: string;
     action: string;
     from: string;
+    to: string;
     value: string;
     timestamp: string;
   }>>(`/transactions/recent?limit=${limit}`);
@@ -103,4 +104,19 @@ export async function fetchToken(address: string) {
 
 export async function fetchOverview() {
   return fetchAPI("/overview");
+}
+
+// -- Statistics -------------------------------------------------------------
+
+export async function fetchStats() {
+  return fetchAPI<{
+    totalTransactions: number;
+    txLast24h: number;
+    txLast7d: number;
+    uniqueUsersTotal: number;
+    uniqueUsers24h: number;
+    protocolBreakdown: Array<{ protocol: string; total: number; last24h: number }>;
+    dailyCounts: Array<{ date: string; count: number }>;
+    mostActiveProtocol: string;
+  }>("/stats");
 }

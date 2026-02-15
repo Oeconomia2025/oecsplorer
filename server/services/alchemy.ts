@@ -79,6 +79,14 @@ export async function getBlock(blockNumberOrHash: number | string) {
 }
 
 /**
+ * Get block with full transaction objects (for scanning block contents)
+ */
+export async function getBlockWithTransactions(blockNumber: number) {
+  const block = await alchemy.core.getBlockWithTransactions(blockNumber);
+  return block;
+}
+
+/**
  * Get latest block number
  */
 export async function getLatestBlockNumber(): Promise<number> {

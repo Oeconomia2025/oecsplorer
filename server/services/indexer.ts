@@ -7,24 +7,18 @@
 // ============================================================
 
 import { prisma, sanitizeForJson } from "../db";
-import { getLatestBlockNumber, getFullTransaction } from "./alchemy";
+import { getLatestBlockNumber, getFullTransaction, getBlockWithTransactions } from "./alchemy";
 import { ProtocolDecoder } from "./decoder";
 import {
   buildAddressToProtocolMap,
-  getAllContractAddresses,
+  getExclusiveContractAddresses,
   TOKENS,
+  ProtocolId,
 } from "../../src/utils/constants";
-import { Alchemy, Network, AssetTransfersCategory } from "alchemy-sdk";
 
 // -- Configuration ----------------------------------------------------------
 
 const POLL_INTERVAL_MS = 30_000; // 30 seconds
-const ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY || "YOUR_API_KEY_HERE";
-
-const alchemy = new Alchemy({
-  apiKey: ALCHEMY_API_KEY,
-  network: Network.ETH_SEPOLIA,
-});
 
 // -- Decoder setup ----------------------------------------------------------
 
@@ -127,11 +121,21 @@ export async function startIndexer() {
     });
     if (lastBlock) {
       lastIndexedBlock = Number(lastBlock.blockNumber);
-      console.log(`[Indexer] Resuming from block ${lastIndexedBlock}`);
+      console.log(`[Indexer] Resuming from IndexedBlock: block ${lastIndexedBlock}`);
     } else {
-      // Start from current block (don't try to backfill on first boot)
-      lastIndexedBlock = await getLatestBlockNumber();
-      console.log(`[Indexer] No history — starting from current block ${lastIndexedBlock}`);
+      // IndexedBlock empty — fall back to latest Transaction blockNumber
+      const lastTx = await prisma.transaction.findFirst({
+        orderBy: { blockNumber: "desc" },
+        select: { blockNumber: true },
+      });
+      if (lastTx) {
+        lastIndexedBlock = Number(lastTx.blockNumber);
+        console.log(`[Indexer] No IndexedBlock history — resuming from latest tx block ${lastIndexedBlock}`);
+      } else {
+        // Truly empty DB — start from current block
+        lastIndexedBlock = await getLatestBlockNumber();
+        console.log(`[Indexer] Empty database — starting from current block ${lastIndexedBlock}`);
+      }
     }
   } catch (err) {
     console.error("[Indexer] Error reading last indexed block, starting from latest:", err);
@@ -157,8 +161,12 @@ export function stopIndexer() {
 // -- Internal ---------------------------------------------------------------
 
 /**
- * Single poll cycle: fetch new blocks since last indexed,
- * find Oeconomia transactions, decode & store them.
+ * Single poll cycle: scan new blocks for transactions targeting
+ * our tracked contracts, decode & store them.
+ *
+ * Uses block scanning instead of getAssetTransfers so we catch
+ * ALL contract calls (including V3 Router swaps where tokens
+ * flow through pools, not the router itself).
  */
 async function pollForTransactions() {
   try {
@@ -169,212 +177,185 @@ async function pollForTransactions() {
     }
 
     const fromBlock = lastIndexedBlock + 1;
-    const toBlock = latestBlock;
+    // Cap at 50 blocks per cycle to avoid overwhelming Alchemy on large gaps
+    const toBlock = Math.min(latestBlock, fromBlock + 49);
     const blockRange = toBlock - fromBlock + 1;
 
     console.log(
       `[Indexer] Checking blocks ${fromBlock}–${toBlock} (${blockRange} blocks)`
     );
 
-    // Use getAssetTransfers to find transactions TO our contracts
-    const contractAddresses = getAllContractAddresses().filter(
-      (addr) => !addr.startsWith("0x000000000000000000000000000000000000")
+    // Only auto-scan exclusive (Oeconomia-owned) contracts, not shared public ones
+    const contractAddresses = new Set(
+      getExclusiveContractAddresses()
+        .filter((addr) => !addr.startsWith("0x000000000000000000000000000000000000"))
+        .map((addr) => addr.toLowerCase())
     );
 
-    if (contractAddresses.length === 0) {
+    if (contractAddresses.size === 0) {
       lastIndexedBlock = toBlock;
       return;
     }
 
     let totalProcessed = 0;
 
-    // Fetch transfers TO our contract addresses
-    for (const contractAddr of contractAddresses) {
+    // Scan each block for transactions TO our contracts
+    for (let blockNum = fromBlock; blockNum <= toBlock; blockNum++) {
       try {
-        const transfers = await alchemy.core.getAssetTransfers({
-          toAddress: contractAddr,
-          fromBlock: `0x${fromBlock.toString(16)}`,
-          toBlock: `0x${toBlock.toString(16)}`,
-          category: [
-            AssetTransfersCategory.EXTERNAL,
-            AssetTransfersCategory.ERC20,
-          ],
-          withMetadata: true,
-          maxCount: 100,
-        });
+        const block = await getBlockWithTransactions(blockNum);
+        if (!block || !block.transactions) continue;
 
-        for (const transfer of transfers.transfers) {
-          const txHash = transfer.hash;
-          if (!txHash) continue;
+        const blockTimestamp = block.timestamp
+          ? new Date(block.timestamp * 1000)
+          : new Date();
 
-          // Skip if already in DB
-          const existing = await prisma.transaction.findUnique({
-            where: { txHash },
-          });
-          if (existing) continue;
+        for (const tx of block.transactions) {
+          const toAddr = tx.to?.toLowerCase();
+          if (!toAddr) continue;
 
-          // Fetch full transaction & decode
-          const fullTx = await getFullTransaction(txHash);
-          if (!fullTx) continue;
+          const txHash = tx.hash;
+          const inputData = tx.data;
 
-          const decoded = decoder.isOeconomiaContract(fullTx.to)
-            ? decoder.decode({
-                to: fullTx.to,
-                input: fullTx.input,
-                value: fullTx.value,
-                logs: fullTx.logs,
-              })
-            : null;
+          // --- Case 1: Direct call to a tracked contract ---
+          if (contractAddresses.has(toAddr)) {
+            const existing = await prisma.transaction.findUnique({ where: { txHash } });
+            if (existing) continue;
 
-          if (!decoded || decoded.protocol === "unknown") continue;
+            const fullTx = await getFullTransaction(txHash);
+            if (!fullTx) continue;
 
-          // Determine block timestamp
-          const blockTimestamp = transfer.metadata?.blockTimestamp
-            ? new Date(transfer.metadata.blockTimestamp)
-            : new Date();
+            const decoded = decoder.isOeconomiaContract(fullTx.to)
+              ? decoder.decode({
+                  to: fullTx.to,
+                  input: fullTx.input,
+                  value: fullTx.value,
+                  logs: fullTx.logs,
+                })
+              : null;
 
-          // Store in PostgreSQL
-          await prisma.transaction.upsert({
-            where: { txHash },
-            create: {
-              txHash,
-              blockNumber: BigInt(fullTx.blockNumber),
-              blockTimestamp,
-              fromAddress: fullTx.from.toLowerCase(),
-              toAddress: fullTx.to.toLowerCase(),
-              valueWei: fullTx.value,
-              gasUsed: BigInt(fullTx.gasUsed),
-              gasPrice: fullTx.gasPrice,
-              status: fullTx.status,
-              protocol: decoded.protocol,
-              actionType: decoded.actionType,
-              functionName: decoded.functionName || null,
-              decodedData: sanitizeForJson({
-                args: decoded.decodedArgs,
-                events: decoded.decodedEvents,
-              }),
-            },
-            update: {},
-          });
+            if (!decoded || decoded.protocol === "unknown") continue;
 
-          // Store token transfers from decoded events
-          await storeTokenTransfers(txHash, decoded.decodedEvents, fullTx.logs);
-
-          totalProcessed++;
-
-          // Broadcast to WebSocket clients
-          if (broadcastFn) {
-            broadcastFn("new_transaction", {
-              txHash,
-              blockNumber: fullTx.blockNumber,
-              fromAddress: fullTx.from,
-              toAddress: fullTx.to,
-              valueWei: fullTx.value,
-              protocol: decoded.protocol,
-              actionType: decoded.actionType,
-              functionName: decoded.functionName,
-              timestamp: blockTimestamp.toISOString(),
-              summary: {
-                hash: txHash,
+            await prisma.transaction.upsert({
+              where: { txHash },
+              create: {
+                txHash,
+                blockNumber: BigInt(fullTx.blockNumber),
+                blockTimestamp,
+                fromAddress: fullTx.from.toLowerCase(),
+                toAddress: fullTx.to.toLowerCase(),
+                valueWei: fullTx.value,
+                gasUsed: BigInt(fullTx.gasUsed),
+                gasPrice: fullTx.gasPrice,
+                status: fullTx.status,
                 protocol: decoded.protocol,
-                action: decoded.actionType,
-                from: fullTx.from,
-                value: fullTx.value,
-                timestamp: blockTimestamp.toISOString(),
+                actionType: decoded.actionType,
+                functionName: decoded.functionName || null,
+                decodedData: sanitizeForJson({
+                  args: decoded.decodedArgs,
+                  events: decoded.decodedEvents,
+                }),
               },
+              update: {},
             });
+
+            await storeTokenTransfers(txHash, decoded.decodedEvents, fullTx.logs);
+            totalProcessed++;
+
+            if (broadcastFn) {
+              broadcastFn("new_transaction", {
+                txHash,
+                blockNumber: fullTx.blockNumber,
+                fromAddress: fullTx.from,
+                toAddress: fullTx.to,
+                valueWei: fullTx.value,
+                protocol: decoded.protocol,
+                actionType: decoded.actionType,
+                functionName: decoded.functionName,
+                timestamp: blockTimestamp.toISOString(),
+                summary: {
+                  hash: txHash,
+                  protocol: decoded.protocol,
+                  action: decoded.actionType,
+                  from: fullTx.from,
+                  to: fullTx.to || "",
+                  value: fullTx.value,
+                  timestamp: blockTimestamp.toISOString(),
+                },
+              });
+            }
+            continue;
+          }
+
+          // --- Case 2: approve() on a token where spender is our contract ---
+          // Selector 0x095ea7b3 = approve(address,uint256)
+          if (inputData && inputData.startsWith("0x095ea7b3") && inputData.length >= 74) {
+            const spender = "0x" + inputData.slice(34, 74).replace(/^0+/, "").toLowerCase();
+            // Pad back to 42 chars for proper address comparison
+            const spenderAddr = "0x" + inputData.slice(34, 74).slice(-40).toLowerCase();
+
+            if (!contractAddresses.has(spenderAddr)) continue;
+
+            const existing = await prisma.transaction.findUnique({ where: { txHash } });
+            if (existing) continue;
+
+            const fullTx = await getFullTransaction(txHash);
+            if (!fullTx) continue;
+
+            // Determine protocol from the spender (our contract)
+            const protocol = addressMap[spenderAddr] || "eloqura";
+
+            await prisma.transaction.upsert({
+              where: { txHash },
+              create: {
+                txHash,
+                blockNumber: BigInt(fullTx.blockNumber),
+                blockTimestamp,
+                fromAddress: fullTx.from.toLowerCase(),
+                toAddress: fullTx.to.toLowerCase(),
+                valueWei: fullTx.value,
+                gasUsed: BigInt(fullTx.gasUsed),
+                gasPrice: fullTx.gasPrice,
+                status: fullTx.status,
+                protocol: protocol as string,
+                actionType: "Token Approval",
+                functionName: "approve",
+                decodedData: sanitizeForJson({
+                  args: { spender: spenderAddr, tokenContract: toAddr },
+                  events: [],
+                }),
+              },
+              update: {},
+            });
+
+            totalProcessed++;
+
+            if (broadcastFn) {
+              broadcastFn("new_transaction", {
+                txHash,
+                blockNumber: fullTx.blockNumber,
+                fromAddress: fullTx.from,
+                toAddress: fullTx.to,
+                valueWei: fullTx.value,
+                protocol,
+                actionType: "Token Approval",
+                functionName: "approve",
+                timestamp: blockTimestamp.toISOString(),
+                summary: {
+                  hash: txHash,
+                  protocol,
+                  action: "Token Approval",
+                  from: fullTx.from,
+                  to: fullTx.to || "",
+                  value: fullTx.value,
+                  timestamp: blockTimestamp.toISOString(),
+                },
+              });
+            }
           }
         }
       } catch (err) {
-        // Log but don't stop — some contracts may not have activity
         const msg = err instanceof Error ? err.message : String(err);
-        if (!msg.includes("No transactions found")) {
-          console.error(`[Indexer] Error fetching transfers for ${contractAddr}:`, msg);
-        }
-      }
-    }
-
-    // Also fetch transfers FROM our contracts (outbound)
-    for (const contractAddr of contractAddresses) {
-      try {
-        const transfers = await alchemy.core.getAssetTransfers({
-          fromAddress: contractAddr,
-          fromBlock: `0x${fromBlock.toString(16)}`,
-          toBlock: `0x${toBlock.toString(16)}`,
-          category: [
-            AssetTransfersCategory.EXTERNAL,
-            AssetTransfersCategory.ERC20,
-          ],
-          withMetadata: true,
-          maxCount: 100,
-        });
-
-        for (const transfer of transfers.transfers) {
-          const txHash = transfer.hash;
-          if (!txHash) continue;
-
-          const existing = await prisma.transaction.findUnique({
-            where: { txHash },
-          });
-          if (existing) continue;
-
-          const fullTx = await getFullTransaction(txHash);
-          if (!fullTx) continue;
-
-          // For outbound transfers, check the 'to' OR 'from' address
-          const protocol =
-            decoder.getProtocol(fullTx.to) !== "unknown"
-              ? decoder.getProtocol(fullTx.to)
-              : decoder.getProtocol(fullTx.from);
-
-          if (protocol === "unknown") continue;
-
-          const decoded = decoder.isOeconomiaContract(fullTx.to)
-            ? decoder.decode({
-                to: fullTx.to,
-                input: fullTx.input,
-                value: fullTx.value,
-                logs: fullTx.logs,
-              })
-            : {
-                protocol,
-                actionType: "Contract Outbound",
-                functionName: "",
-                decodedArgs: {},
-                decodedEvents: [],
-              };
-
-          const blockTimestamp = transfer.metadata?.blockTimestamp
-            ? new Date(transfer.metadata.blockTimestamp)
-            : new Date();
-
-          await prisma.transaction.upsert({
-            where: { txHash },
-            create: {
-              txHash,
-              blockNumber: BigInt(fullTx.blockNumber),
-              blockTimestamp,
-              fromAddress: fullTx.from.toLowerCase(),
-              toAddress: fullTx.to.toLowerCase(),
-              valueWei: fullTx.value,
-              gasUsed: BigInt(fullTx.gasUsed),
-              gasPrice: fullTx.gasPrice,
-              status: fullTx.status,
-              protocol: decoded.protocol,
-              actionType: decoded.actionType,
-              functionName: decoded.functionName || null,
-              decodedData: sanitizeForJson({
-                args: decoded.decodedArgs,
-                events: decoded.decodedEvents,
-              }),
-            },
-            update: {},
-          });
-
-          totalProcessed++;
-        }
-      } catch {
-        // Silently skip — outbound may not exist for many contracts
+        console.error(`[Indexer] Error scanning block ${blockNum}:`, msg);
       }
     }
 
@@ -382,8 +363,27 @@ async function pollForTransactions() {
       console.log(`[Indexer] Stored ${totalProcessed} new transactions`);
     }
 
-    // Update last indexed block
+    // Update last indexed block (in memory and persisted)
     lastIndexedBlock = toBlock;
+
+    // Persist progress so restarts don't create gaps
+    try {
+      await prisma.indexedBlock.upsert({
+        where: { blockNumber: BigInt(toBlock) },
+        create: {
+          blockNumber: BigInt(toBlock),
+          blockHash: `0x${"0".repeat(64)}`, // placeholder — we don't fetch block hash
+          timestamp: new Date(),
+          txCount: 0,
+          oecTxCount: totalProcessed,
+        },
+        update: {
+          oecTxCount: totalProcessed,
+        },
+      });
+    } catch {
+      // Non-critical — progress is still tracked in memory
+    }
   } catch (err) {
     console.error("[Indexer] Poll cycle error:", err);
   }

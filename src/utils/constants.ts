@@ -27,9 +27,9 @@ export interface ProtocolConfig {
 export const PROTOCOLS: Record<ProtocolId, ProtocolConfig> = {
   oeconomia: {
     id: "oeconomia",
-    name: "Oeconomia",
+    name: "Staking",
     shortName: "OEC",
-    color: "#C9A84C",
+    color: "#da1cfe",
     icon: "⚡",
     logo: "https://pub-37d61a7eb7ae45898b46702664710cb2.r2.dev/images/OEC%20Logo.png",
     description: "Governance hub — Guardian staking, proposals, treasury, cross-protocol coordination",
@@ -43,7 +43,7 @@ export const PROTOCOLS: Record<ProtocolId, ProtocolConfig> = {
     id: "alluria",
     name: "Alluria",
     shortName: "ALUR",
-    color: "#3B82F6",
+    color: "#834841",
     icon: "🏦",
     logo: "https://pub-37d61a7eb7ae45898b46702664710cb2.r2.dev/ALUR.png",
     description: "Lending protocol — ETH-collateralized vaults, ALUD stablecoin minting, liquidations",
@@ -58,7 +58,7 @@ export const PROTOCOLS: Record<ProtocolId, ProtocolConfig> = {
     id: "eloqura",
     name: "Eloqura",
     shortName: "ELOQ",
-    color: "#8B5CF6",
+    color: "#ae65fc",
     icon: "🔄",
     logo: "https://pub-37d61a7eb7ae45898b46702664710cb2.r2.dev/Eloqura.png",
     description: "DEX/AMM — Uniswap V2/V3 swaps, liquidity pools, cross-chain bridge, yield optimization",
@@ -76,7 +76,7 @@ export const PROTOCOLS: Record<ProtocolId, ProtocolConfig> = {
     id: "artivya",
     name: "Artivya",
     shortName: "ARTV",
-    color: "#EC4899",
+    color: "#11c4fe",
     icon: "🎨",
     logo: "https://pub-37d61a7eb7ae45898b46702664710cb2.r2.dev/With%20Border/Art%20no%20Border2.png",
     description: "Hybrid trading — order book + AMM, NFT marketplace, creator tools, royalty management",
@@ -91,8 +91,9 @@ export const PROTOCOLS: Record<ProtocolId, ProtocolConfig> = {
     id: "iridescia",
     name: "Iridescia",
     shortName: "IRID",
-    color: "#10B981",
+    color: "#f8e6d8",
     icon: "🛠",
+    logo: "https://pub-37d61a7eb7ae45898b46702664710cb2.r2.dev/IRID%20logo.png",
     description: "Developer infrastructure — contract deployment, templates, security frameworks",
     contracts: {
       contractFactory:  "0x0000000000000000000000000000000000000040", // TODO: replace
@@ -113,6 +114,7 @@ export interface TokenConfig {
   protocol: ProtocolId;
   color: string;
   logo?: string; // URL to token logo image
+  official?: boolean; // Official Oeconomia DAO token
 }
 
 export const TOKENS: TokenConfig[] = [
@@ -122,8 +124,9 @@ export const TOKENS: TokenConfig[] = [
     address: "0x2b2fb8df4ac5d394f0d5674d7a54802e42a06aba",
     decimals: 18,
     protocol: "oeconomia",
-    color: "#C9A84C",
+    color: "#da1cfe",
     logo: "https://pub-37d61a7eb7ae45898b46702664710cb2.r2.dev/images/OEC%20Logo.png",
+    official: true,
   },
   {
     symbol: "USDC",
@@ -132,6 +135,7 @@ export const TOKENS: TokenConfig[] = [
     decimals: 6,
     protocol: "eloqura",
     color: "#2775CA",
+    logo: "https://assets.coingecko.com/coins/images/6319/standard/usdc.png",
   },
   {
     symbol: "LINK",
@@ -140,6 +144,7 @@ export const TOKENS: TokenConfig[] = [
     decimals: 18,
     protocol: "eloqura",
     color: "#375BD2",
+    logo: "https://assets.coingecko.com/coins/images/877/standard/chainlink-new-logo.png",
   },
   {
     symbol: "WETH",
@@ -148,6 +153,7 @@ export const TOKENS: TokenConfig[] = [
     decimals: 18,
     protocol: "eloqura",
     color: "#627EEA",
+    logo: "https://assets.coingecko.com/coins/images/2518/standard/weth.png",
   },
   {
     symbol: "ALUD",
@@ -155,8 +161,9 @@ export const TOKENS: TokenConfig[] = [
     address: "0x0000000000000000000000000000000000000012", // Not yet deployed
     decimals: 18,
     protocol: "alluria",
-    color: "#3B82F6",
+    color: "#834841",
     logo: "https://pub-37d61a7eb7ae45898b46702664710cb2.r2.dev/ALUD.png",
+    official: true,
   },
   {
     symbol: "ALUR",
@@ -164,8 +171,19 @@ export const TOKENS: TokenConfig[] = [
     address: "0x0000000000000000000000000000000000000014", // Not yet deployed
     decimals: 18,
     protocol: "alluria",
-    color: "#60A5FA",
+    color: "#834841",
     logo: "https://pub-37d61a7eb7ae45898b46702664710cb2.r2.dev/ALUR.png",
+    official: true,
+  },
+  {
+    symbol: "ELOQ",
+    name: "Eloqura",
+    address: "0x0000000000000000000000000000000000000020", // Not yet deployed
+    decimals: 18,
+    protocol: "eloqura",
+    color: "#ae65fc",
+    logo: "https://pub-37d61a7eb7ae45898b46702664710cb2.r2.dev/Eloqura.png",
+    official: true,
   },
 ];
 
@@ -192,4 +210,21 @@ export function getProtocolAddresses(protocolId: ProtocolId): string[] {
 /** All contract addresses across all protocols */
 export function getAllContractAddresses(): string[] {
   return Object.values(PROTOCOLS).flatMap((p) => Object.values(p.contracts));
+}
+
+// ------------------------------------------------------------
+// Shared (public) contracts — NOT exclusively used by Oeconomia
+// These are indexed only via site-triggered tracking, not auto-scan.
+// ------------------------------------------------------------
+export const SHARED_CONTRACTS = new Set([
+  "0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E".toLowerCase(), // Uniswap V3 SwapRouter
+  "0x0227628f3F023bb0B980b67D528571c95c6DaC1c".toLowerCase(), // Uniswap V3 Factory
+  "0xEd1f6473345F45b75F8179591dd5bA1888cf2FB3".toLowerCase(), // Uniswap V3 Quoter
+]);
+
+/** Contract addresses exclusively owned by Oeconomia (safe to auto-scan) */
+export function getExclusiveContractAddresses(): string[] {
+  return getAllContractAddresses().filter(
+    (addr) => !SHARED_CONTRACTS.has(addr.toLowerCase())
+  );
 }

@@ -7,6 +7,8 @@ import Dashboard from "@/pages/Dashboard";
 import TransactionDetail from "@/pages/TransactionDetail";
 import AddressDetail from "@/pages/AddressDetail";
 import ProtocolPage from "@/pages/ProtocolPage";
+import TokensPage from "@/pages/TokensPage";
+import StatsPage from "@/pages/StatsPage";
 import { search } from "@/services/api";
 
 function ThemeToggle() {
@@ -61,10 +63,10 @@ function Header() {
           <img
             src="https://pub-37d61a7eb7ae45898b46702664710cb2.r2.dev/images/OEC%20Logo.png"
             alt="OEC"
-            className="h-8 w-auto object-contain"
+            className="w-8 h-auto object-contain"
           />
           <div className="hidden sm:block">
-            <div className="text-sm font-bold text-tx-primary tracking-wide">
+            <div className="text-lg font-bold text-tx-primary tracking-wide">
               OEC<span className="text-accent-gold">splorer</span>
             </div>
           </div>
@@ -79,7 +81,7 @@ function Header() {
         <ThemeToggle />
 
         {/* Network badge */}
-        <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-th-elevated border border-bd-primary">
+        <div className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg bg-th-elevated border border-bd-primary">
           <span className="w-2 h-2 rounded-full bg-status-live" style={{ boxShadow: "0 0 6px #22C55E44" }} />
           <span className="text-xs text-tx-tertiary">Sepolia</span>
         </div>
@@ -96,7 +98,7 @@ function ProtocolNav() {
       <div className="max-w-7xl mx-auto px-4 py-2 flex gap-2 overflow-x-auto">
         <Link
           to="/"
-          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+          className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex-1 text-center ${
             location.pathname === "/"
               ? "bg-oec-gold/15 text-oec-gold border border-oec-gold/30"
               : "text-tx-muted hover:text-tx-secondary hover:bg-th-elevated"
@@ -108,7 +110,7 @@ function ProtocolNav() {
           <Link
             key={id}
             to={`/protocol/${id}`}
-            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-1.5 flex-1 ${
               location.pathname === `/protocol/${id}`
                 ? "border"
                 : "text-tx-muted hover:text-tx-secondary hover:bg-th-elevated"
@@ -119,10 +121,30 @@ function ProtocolNav() {
                 : undefined
             }
           >
-            <ProtocolIcon protocol={id} size="sm" />
+            <ProtocolIcon protocol={id} size="md" />
             <span>{config.shortName}</span>
           </Link>
         ))}
+        <Link
+          to="/tokens"
+          className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex-1 text-center ${
+            location.pathname === "/tokens"
+              ? "bg-oec-gold/15 text-oec-gold border border-oec-gold/30"
+              : "text-tx-muted hover:text-tx-secondary hover:bg-th-elevated"
+          }`}
+        >
+          Tokens
+        </Link>
+        <Link
+          to="/stats"
+          className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex-1 text-center ${
+            location.pathname === "/stats"
+              ? "bg-oec-gold/15 text-oec-gold border border-oec-gold/30"
+              : "text-tx-muted hover:text-tx-secondary hover:bg-th-elevated"
+          }`}
+        >
+          Stats
+        </Link>
       </div>
     </nav>
   );
@@ -139,6 +161,8 @@ export default function App() {
           <Route path="/tx/:hash" element={<TransactionDetail />} />
           <Route path="/address/:address" element={<AddressDetail />} />
           <Route path="/protocol/:protocolId" element={<ProtocolPage />} />
+          <Route path="/tokens" element={<TokensPage />} />
+          <Route path="/stats" element={<StatsPage />} />
         </Routes>
       </main>
     </div>
