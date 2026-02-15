@@ -26,8 +26,8 @@ export async function fetchTransaction(hash: string) {
   return fetchAPI(`/tx/${hash}`);
 }
 
-export async function fetchRecentTransactions(limit = 20) {
-  return fetchAPI<Array<{
+export interface PaginatedTransactions {
+  transactions: Array<{
     hash: string;
     protocol: string;
     action: string;
@@ -35,13 +35,20 @@ export async function fetchRecentTransactions(limit = 20) {
     to: string;
     value: string;
     timestamp: string;
-  }>>(`/transactions/recent?limit=${limit}`);
+  }>;
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export async function fetchRecentTransactions(limit = 25, offset = 0) {
+  return fetchAPI<PaginatedTransactions>(`/transactions/recent?limit=${limit}&offset=${offset}`);
 }
 
 // -- Address Endpoints ------------------------------------------------------
 
-export async function fetchAddress(address: string) {
-  return fetchAPI(`/address/${address}`);
+export async function fetchAddress(address: string, txLimit = 25, txOffset = 0) {
+  return fetchAPI(`/address/${address}?txLimit=${txLimit}&txOffset=${txOffset}`);
 }
 
 export async function fetchAddressTransactions(

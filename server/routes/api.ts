@@ -47,15 +47,20 @@ const decoder = new ProtocolDecoder(decoderMap);
  */
 router.get("/transactions/recent", async (req: Request, res: Response) => {
   try {
-    const limit = Math.min(parseInt(req.query.limit as string, 10) || 20, 100);
+    const limit = Math.min(parseInt(req.query.limit as string, 10) || 25, 100);
+    const offset = parseInt(req.query.offset as string, 10) || 0;
 
-    const transactions = await prisma.transaction.findMany({
-      orderBy: { blockTimestamp: "desc" },
-      take: limit,
-    });
+    const [transactions, total] = await Promise.all([
+      prisma.transaction.findMany({
+        orderBy: { blockTimestamp: "desc" },
+        take: limit,
+        skip: offset,
+      }),
+      prisma.transaction.count(),
+    ]);
 
-    res.json(
-      transactions.map((tx) => ({
+    res.json({
+      transactions: transactions.map((tx) => ({
         hash: tx.txHash,
         protocol: tx.protocol,
         action: tx.actionType,
@@ -63,8 +68,11 @@ router.get("/transactions/recent", async (req: Request, res: Response) => {
         to: tx.toAddress || "",
         value: tx.valueWei.toString(),
         timestamp: tx.blockTimestamp.toISOString(),
-      }))
-    );
+      })),
+      total,
+      limit,
+      offset,
+    });
   } catch (error) {
     console.error("[API] Error fetching recent transactions:", error);
     res.status(500).json({ error: "Failed to fetch recent transactions" });
@@ -175,21 +183,28 @@ router.get("/address/:address", async (req: Request, res: Response) => {
 
     // Fetch data in parallel
     const addrLower = address.toLowerCase();
-    const [ethBalance, tokenBalances, recentTransfers, indexedTransactions] = await Promise.all([
+    const txLimit = Math.min(parseInt(req.query.txLimit as string, 10) || 25, 100);
+    const txOffset = parseInt(req.query.txOffset as string, 10) || 0;
+
+    const txWhere = {
+      OR: [
+        { fromAddress: addrLower },
+        { toAddress: addrLower },
+      ],
+    };
+
+    const [ethBalance, tokenBalances, recentTransfers, indexedTransactions, txTotal] = await Promise.all([
       getBalance(address),
       getTokenBalances(address),
       getAssetTransfers({ fromAddress: address, maxCount: 20 }),
       prisma.transaction.findMany({
-        where: {
-          OR: [
-            { fromAddress: addrLower },
-            { toAddress: addrLower },
-          ],
-        },
+        where: txWhere,
         orderBy: { blockTimestamp: "desc" },
-        take: 50,
+        take: txLimit,
+        skip: txOffset,
         include: { tokenTransfers: true },
       }),
+      prisma.transaction.count({ where: txWhere }),
     ]);
 
     // Enrich token balances with metadata
@@ -260,6 +275,9 @@ router.get("/address/:address", async (req: Request, res: Response) => {
           decimals: tt.decimals,
         })),
       })),
+      txTotal,
+      txLimit,
+      txOffset,
     });
   } catch (error) {
     console.error("[API] Error fetching address:", error);

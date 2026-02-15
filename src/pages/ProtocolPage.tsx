@@ -1,26 +1,37 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import { PROTOCOLS } from "@/utils/constants";
 import { ProtocolBadge, ProtocolIcon, EmptyState } from "@/components/shared";
+import { Pagination } from "@/components/Pagination";
 import { truncateAddress, etherscanLink, timeAgo } from "@/utils/formatters";
 import { CHAIN_ID } from "@/utils/constants";
 import type { ProtocolId } from "@/utils/constants";
 import { fetchProtocolTransactions } from "@/services/api";
+
+const PAGE_SIZE = 25;
 
 export default function ProtocolPage() {
   const { protocolId } = useParams<{ protocolId: string }>();
   const protocol = PROTOCOLS[protocolId as ProtocolId];
   const [transactions, setTransactions] = useState<any[]>([]);
   const [txLoading, setTxLoading] = useState(true);
+  const [txTotal, setTxTotal] = useState(0);
+  const [txOffset, setTxOffset] = useState(0);
 
-  useEffect(() => {
+  const loadPage = useCallback((offset: number) => {
     if (!protocolId) return;
     setTxLoading(true);
-    fetchProtocolTransactions(protocolId, 20)
-      .then((data: any) => setTransactions(data.transactions || []))
+    fetchProtocolTransactions(protocolId, PAGE_SIZE, offset)
+      .then((data: any) => {
+        setTransactions(data.transactions || []);
+        setTxTotal(data.total || 0);
+        setTxOffset(offset);
+      })
       .catch(() => setTransactions([]))
       .finally(() => setTxLoading(false));
   }, [protocolId]);
+
+  useEffect(() => { loadPage(0); }, [loadPage]);
 
   if (!protocol) {
     return (
@@ -165,6 +176,7 @@ export default function ProtocolPage() {
                 ))}
               </tbody>
             </table>
+            <Pagination total={txTotal} limit={PAGE_SIZE} offset={txOffset} onPageChange={loadPage} />
           </div>
         ) : (
           <EmptyState

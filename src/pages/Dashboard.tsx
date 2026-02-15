@@ -1,7 +1,8 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { PROTOCOLS, TOKENS } from "@/utils/constants";
 import { ProtocolBadge, ProtocolIcon, LiveIndicator, EmptyState, CopyButton } from "@/components/shared";
+import { Pagination } from "@/components/Pagination";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import type { LiveTransaction } from "@/hooks/useWebSocket";
 import { truncateAddress, timeAgo, etherscanLink } from "@/utils/formatters";
@@ -9,23 +10,38 @@ import { CHAIN_ID } from "@/utils/constants";
 import { fetchLatestBlock, fetchRecentTransactions } from "@/services/api";
 import type { ProtocolId } from "@/utils/constants";
 
+const PAGE_SIZE = 25;
+
 export default function Dashboard() {
   const { isConnected, transactions: wsTx } = useWebSocket({ channel: "all" });
   const [latestBlock, setLatestBlock] = useState<number | null>(null);
   const [selectedProtocol, setSelectedProtocol] = useState<string>("all");
   const [dbTransactions, setDbTransactions] = useState<LiveTransaction[]>([]);
+  const [txTotal, setTxTotal] = useState(0);
+  const [txOffset, setTxOffset] = useState(0);
 
   useEffect(() => {
     fetchLatestBlock()
       .then((data) => setLatestBlock(data.blockNumber))
       .catch(() => {});
+  }, []);
 
-    fetchRecentTransactions(20)
-      .then((data) => setDbTransactions(data))
+  const loadPage = useCallback((offset: number) => {
+    fetchRecentTransactions(PAGE_SIZE, offset)
+      .then((data) => {
+        setDbTransactions(data.transactions);
+        setTxTotal(data.total);
+        setTxOffset(offset);
+      })
       .catch(() => {});
   }, []);
 
+  useEffect(() => { loadPage(0); }, [loadPage]);
+
+  // On page 1, merge WebSocket live transactions with DB results
+  // On other pages, just show DB results
   const transactions = useMemo(() => {
+    if (txOffset > 0) return dbTransactions;
     const seen = new Set<string>();
     const merged: LiveTransaction[] = [];
     for (const tx of [...wsTx, ...dbTransactions]) {
@@ -35,7 +51,7 @@ export default function Dashboard() {
       }
     }
     return merged;
-  }, [wsTx, dbTransactions]);
+  }, [wsTx, dbTransactions, txOffset]);
 
   const filteredTx = selectedProtocol === "all"
     ? transactions
@@ -214,6 +230,7 @@ export default function Dashboard() {
                 ))}
               </tbody>
             </table>
+            <Pagination total={txTotal} limit={PAGE_SIZE} offset={txOffset} onPageChange={loadPage} />
           </div>
         ) : (
           <EmptyState

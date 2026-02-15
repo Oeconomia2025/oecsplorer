@@ -1,9 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { ProtocolBadge, EmptyState } from "@/components/shared";
+import { Pagination } from "@/components/Pagination";
 import { timeAgo, etherscanLink, weiToEth, formatTokenAmount } from "@/utils/formatters";
 import { fetchAddress } from "@/services/api";
 import { CHAIN_ID, TOKENS } from "@/utils/constants";
+
+const TX_PAGE_SIZE = 25;
 
 export default function AddressDetail() {
   const { address } = useParams<{ address: string }>();
@@ -11,15 +14,18 @@ export default function AddressDetail() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [txOffset, setTxOffset] = useState(0);
 
-  useEffect(() => {
+  const loadData = useCallback((offset: number) => {
     if (!address) return;
-    setLoading(true);
-    fetchAddress(address)
-      .then((d) => { setData(d); setError(null); })
+    setLoading((prev) => data === null ? true : prev); // only show spinner on initial load
+    fetchAddress(address, TX_PAGE_SIZE, offset)
+      .then((d) => { setData(d); setError(null); setTxOffset(offset); })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [address]);
+  }, [address, data]);
+
+  useEffect(() => { loadData(0); }, [address]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) {
     return (
@@ -123,7 +129,7 @@ export default function AddressDetail() {
       {data?.transactions && data.transactions.length > 0 ? (
         <div>
           <h2 className="text-sm font-semibold text-tx-tertiary uppercase tracking-wider mb-3">
-            Indexed Transactions ({data.transactions.length})
+            Indexed Transactions ({(data.txTotal ?? data.transactions.length).toLocaleString()})
           </h2>
           <div className="border border-bd-primary rounded-xl overflow-hidden">
             <table className="w-full">
@@ -178,6 +184,7 @@ export default function AddressDetail() {
                 ))}
               </tbody>
             </table>
+            <Pagination total={data.txTotal ?? 0} limit={TX_PAGE_SIZE} offset={txOffset} onPageChange={loadData} />
           </div>
         </div>
       ) : (
