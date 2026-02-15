@@ -98,7 +98,7 @@ router.get("/tx/:hash", async (req: Request, res: Response) => {
           tokenSymbol: tt.tokenSymbol,
           fromAddress: tt.fromAddress,
           toAddress: tt.toAddress,
-          amount: tt.amount.toString(),
+          amount: tt.amount.toFixed(0),
           decimals: tt.decimals,
         })),
       });
