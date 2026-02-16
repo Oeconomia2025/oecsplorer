@@ -98,7 +98,7 @@ export default function Dashboard() {
                 className="group p-4 rounded-xl border transition-all hover:-translate-y-0.5"
                 style={{
                   borderColor: `${config.color}20`,
-                  background: `linear-gradient(135deg, ${config.color}08, transparent)`,
+                  background: `linear-gradient(135deg, ${config.color}66, transparent)`,
                 }}
               >
                 <div className="flex items-center gap-2 mb-2">
@@ -107,11 +107,11 @@ export default function Dashboard() {
                     {config.name}
                   </span>
                 </div>
-                <p className="text-xs text-tx-muted leading-relaxed mb-3 line-clamp-2">
+                <p className="text-xs text-tx-secondary leading-relaxed mb-3 line-clamp-2">
                   {config.description}
                 </p>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-tx-faint">
+                  <span className="text-xs text-tx-muted">
                     {contractCount} contract{contractCount !== 1 ? "s" : ""}
                   </span>
                   <span

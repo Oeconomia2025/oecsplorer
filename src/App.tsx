@@ -10,6 +10,8 @@ import ProtocolPage from "@/pages/ProtocolPage";
 import TokensPage from "@/pages/TokensPage";
 import TokenDetailPage from "@/pages/TokenDetailPage";
 import StatsPage from "@/pages/StatsPage";
+import LearnPage from "@/pages/LearnPage";
+import LearnLessonPage from "@/pages/LearnLessonPage";
 import { search } from "@/services/api";
 
 function ThemeToggle() {
@@ -37,6 +39,7 @@ function ThemeToggle() {
 }
 
 function Header() {
+  const { theme } = useTheme();
   const navigate = useNavigate();
 
   const handleSearch = async (query: string) => {
@@ -60,15 +63,15 @@ function Header() {
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-bd-primary bg-th-header backdrop-blur-sm">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-6">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 shrink-0">
+        <Link to="/" className="flex items-center shrink-0">
           <img
-            src="https://pub-37d61a7eb7ae45898b46702664710cb2.r2.dev/images/OEC%20Logo.png"
+            src={theme === "dark" ? "/oec-white.png" : "/oec-black.png"}
             alt="OEC"
-            className="w-8 h-auto object-contain"
+            className="w-16 h-auto object-contain"
           />
-          <div className="hidden sm:block">
-            <div className="text-lg font-bold text-tx-primary tracking-wide">
-              OEC<span className="text-accent-gold">splorer</span>
+          <div className="hidden sm:block -ml-1">
+            <div className="text-3xl font-bold text-accent-gold tracking-wide">
+              splorer
             </div>
           </div>
         </Link>
@@ -99,7 +102,7 @@ function ProtocolNav() {
       <div className="max-w-7xl mx-auto px-4 py-2 flex gap-2 overflow-x-auto">
         <Link
           to="/"
-          className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex-1 text-center ${
+          className={`px-3 py-1.5 rounded-md text-base font-bold transition-colors flex-1 text-center ${
             location.pathname === "/"
               ? "bg-oec-gold/15 text-oec-gold border border-oec-gold/30"
               : "text-tx-muted hover:text-tx-secondary hover:bg-th-elevated"
@@ -111,7 +114,7 @@ function ProtocolNav() {
           <Link
             key={id}
             to={`/protocol/${id}`}
-            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-1.5 flex-1 ${
+            className={`px-3 py-1.5 rounded-md text-base font-bold transition-colors flex items-center justify-center flex-1 ${
               location.pathname === `/protocol/${id}`
                 ? "border"
                 : "text-tx-muted hover:text-tx-secondary hover:bg-th-elevated"
@@ -122,13 +125,12 @@ function ProtocolNav() {
                 : undefined
             }
           >
-            <ProtocolIcon protocol={id} size="md" />
-            <span>{config.shortName}</span>
+            {config.shortName}
           </Link>
         ))}
         <Link
           to="/tokens"
-          className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex-1 text-center ${
+          className={`px-3 py-1.5 rounded-md text-base font-bold transition-colors flex-1 text-center ${
             location.pathname === "/tokens"
               ? "bg-oec-gold/15 text-oec-gold border border-oec-gold/30"
               : "text-tx-muted hover:text-tx-secondary hover:bg-th-elevated"
@@ -138,13 +140,23 @@ function ProtocolNav() {
         </Link>
         <Link
           to="/stats"
-          className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex-1 text-center ${
+          className={`px-3 py-1.5 rounded-md text-base font-bold transition-colors flex-1 text-center ${
             location.pathname === "/stats"
               ? "bg-oec-gold/15 text-oec-gold border border-oec-gold/30"
               : "text-tx-muted hover:text-tx-secondary hover:bg-th-elevated"
           }`}
         >
           Stats
+        </Link>
+        <Link
+          to="/learn"
+          className={`px-3 py-1.5 rounded-md text-base font-bold transition-colors flex-1 text-center ${
+            location.pathname.startsWith("/learn")
+              ? "bg-oec-gold/15 text-oec-gold border border-oec-gold/30"
+              : "text-tx-muted hover:text-tx-secondary hover:bg-th-elevated"
+          }`}
+        >
+          Learn
         </Link>
       </div>
     </nav>
@@ -165,6 +177,8 @@ export default function App() {
           <Route path="/tokens" element={<TokensPage />} />
           <Route path="/token/:address" element={<TokenDetailPage />} />
           <Route path="/stats" element={<StatsPage />} />
+          <Route path="/learn" element={<LearnPage />} />
+          <Route path="/learn/:slug" element={<LearnLessonPage />} />
         </Routes>
       </main>
     </div>
