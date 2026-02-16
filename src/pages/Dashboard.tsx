@@ -210,13 +210,13 @@ export default function Dashboard() {
                     </td>
                     <td className="px-4 py-2.5 text-sm text-tx-secondary">{tx.action}</td>
                     <td className="px-4 py-2.5">
-                      <Link to={`/address/${tx.from}`} className="text-tx-tertiary hover:text-tx-primary text-sm font-mono">
+                      <Link to={`/address/${tx.from}`} className="text-tx-tertiary hover:text-tx-primary text-xs font-mono">
                         {truncateAddress(tx.from)}
                       </Link>
                     </td>
                     <td className="px-4 py-2.5">
                       {tx.to ? (
-                        <Link to={`/address/${tx.to}`} className="text-tx-tertiary hover:text-tx-primary text-sm font-mono">
+                        <Link to={`/address/${tx.to}`} className="text-tx-tertiary hover:text-tx-primary text-xs font-mono">
                           {truncateAddress(tx.to)}
                         </Link>
                       ) : (

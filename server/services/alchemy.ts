@@ -167,6 +167,14 @@ export async function getAssetTransfers(params: {
   };
 }
 
+/**
+ * Check if an address is a contract (has deployed bytecode)
+ */
+export async function isContract(address: string): Promise<boolean> {
+  const code = await alchemy.core.getCode(address);
+  return code !== "0x";
+}
+
 // -- Event Logs (for indexing) ----------------------------------------------
 
 /**

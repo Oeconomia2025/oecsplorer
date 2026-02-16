@@ -154,6 +154,34 @@ export const TOKENS: TokenConfig[] = [
     protocol: "eloqura",
     color: "#627EEA",
     logo: "https://assets.coingecko.com/coins/images/2518/standard/weth.png",
+    official: true,
+  },
+  {
+    symbol: "WBTC",
+    name: "Wrapped Bitcoin",
+    address: "0x0000000000000000000000000000000000000050",
+    decimals: 8,
+    protocol: "eloqura",
+    color: "#F7931A",
+    logo: "https://assets.coingecko.com/coins/images/7598/standard/wrapped_bitcoin_wbtc.png",
+  },
+  {
+    symbol: "WBNB",
+    name: "Wrapped BNB",
+    address: "0x0000000000000000000000000000000000000051",
+    decimals: 18,
+    protocol: "eloqura",
+    color: "#F3BA2F",
+    logo: "https://cryptologos.cc/logos/bnb-bnb-logo.png",
+  },
+  {
+    symbol: "WTAO",
+    name: "Wrapped TAO",
+    address: "0x0000000000000000000000000000000000000052",
+    decimals: 18,
+    protocol: "eloqura",
+    color: "#24C1AD",
+    logo: "https://assets.coingecko.com/coins/images/28452/standard/ARUsPeNQ_400x400.jpeg",
   },
   {
     symbol: "ALUD",
@@ -178,7 +206,7 @@ export const TOKENS: TokenConfig[] = [
   {
     symbol: "ELOQ",
     name: "Eloqura",
-    address: "0x0000000000000000000000000000000000000020", // Not yet deployed
+    address: "0x4feb15d0644e5c7bb64dcd85744f0f2ab5f7a253",
     decimals: 18,
     protocol: "eloqura",
     color: "#ae65fc",

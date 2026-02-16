@@ -8,6 +8,7 @@ import TransactionDetail from "@/pages/TransactionDetail";
 import AddressDetail from "@/pages/AddressDetail";
 import ProtocolPage from "@/pages/ProtocolPage";
 import TokensPage from "@/pages/TokensPage";
+import TokenDetailPage from "@/pages/TokenDetailPage";
 import StatsPage from "@/pages/StatsPage";
 import { search } from "@/services/api";
 
@@ -162,6 +163,7 @@ export default function App() {
           <Route path="/address/:address" element={<AddressDetail />} />
           <Route path="/protocol/:protocolId" element={<ProtocolPage />} />
           <Route path="/tokens" element={<TokensPage />} />
+          <Route path="/token/:address" element={<TokenDetailPage />} />
           <Route path="/stats" element={<StatsPage />} />
         </Routes>
       </main>

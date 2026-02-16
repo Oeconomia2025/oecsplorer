@@ -254,7 +254,7 @@ export function CopyButton({ text }: { text: string }) {
 export function EmptyState({
   title = "No data yet",
   description = "Transactions will appear here once indexed.",
-  icon = "📭",
+  icon,
   logoUrl,
 }: {
   title?: string;
@@ -266,9 +266,9 @@ export function EmptyState({
     <div className="flex flex-col items-center justify-center py-16 text-center">
       {logoUrl ? (
         <img src={logoUrl} alt="" className="w-10 h-10 rounded-full object-cover mb-4" />
-      ) : (
+      ) : icon ? (
         <span className="text-4xl mb-4">{icon}</span>
-      )}
+      ) : null}
       <h3 className="text-lg font-semibold text-tx-secondary mb-1">{title}</h3>
       <p className="text-sm text-tx-muted max-w-md">{description}</p>
     </div>

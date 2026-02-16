@@ -18,7 +18,10 @@ import {
   getTokenBalances,
   getTokenMetadata,
   getAssetTransfers,
+  getLogs,
+  isContract,
 } from "../services/alchemy";
+import { AssetTransfersCategory } from "alchemy-sdk";
 import { ProtocolDecoder } from "../services/decoder";
 import {
   buildAddressToProtocolMap,
@@ -38,6 +41,25 @@ for (const [addr, protocol] of Object.entries(addressMap)) {
   decoderMap[addr] = protocol;
 }
 const decoder = new ProtocolDecoder(decoderMap);
+
+// ── In-memory Cache (reduces Alchemy CU usage) ───────────────
+
+const apiCache = new Map<string, { data: unknown; expiresAt: number }>();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+function getCached<T>(key: string): T | null {
+  const entry = apiCache.get(key);
+  if (!entry) return null;
+  if (Date.now() > entry.expiresAt) {
+    apiCache.delete(key);
+    return null;
+  }
+  return entry.data as T;
+}
+
+function setCache(key: string, data: unknown, ttl = CACHE_TTL) {
+  apiCache.set(key, { data, expiresAt: Date.now() + ttl });
+}
 
 // ── Transaction Endpoints ─────────────────────────────────────
 
@@ -637,7 +659,7 @@ router.get("/search", async (req: Request, res: Response) => {
         (t) => t.symbol.toLowerCase() === query.toLowerCase()
       );
       if (token) {
-        res.json({ type: "token", value: token.address, redirect: `/tokens/${token.address}` });
+        res.json({ type: "token", value: token.address, redirect: `/token/${token.address}` });
       } else {
         res.json({ type: "unknown", value: query, redirect: null });
       }
@@ -664,19 +686,223 @@ router.get("/tokens", (_req: Request, res: Response) => {
 router.get("/tokens/:address", async (req: Request, res: Response) => {
   try {
     const { address } = req.params;
+    const cacheKey = `token:${address.toLowerCase()}`;
+    const cached = getCached(cacheKey);
+    if (cached) return res.json(cached);
+
     const metadata = await getTokenMetadata(address);
     const oecToken = TOKENS.find(
       (t) => t.address.toLowerCase() === address.toLowerCase()
     );
 
-    res.json({
+    // Fetch transfers via Alchemy getAssetTransfers (covers full history)
+    const [alchemyTransfers, uniqueAddresses] = await Promise.all([
+      getAssetTransfers({
+        contractAddresses: [address],
+        category: [AssetTransfersCategory.ERC20],
+        maxCount: 50,
+      }),
+      prisma.$queryRaw<[{ count: bigint }]>`
+        SELECT COUNT(DISTINCT addr) as count FROM (
+          SELECT from_address as addr FROM token_transfers WHERE LOWER(token_address) = LOWER(${address})
+          UNION
+          SELECT to_address as addr FROM token_transfers WHERE LOWER(token_address) = LOWER(${address})
+        ) AS addrs
+      `,
+    ]);
+
+    // Look up decoded actions from indexed DB transactions
+    const txHashes = alchemyTransfers.transfers.map((t: any) => t.hash as string);
+    const indexedTxs = txHashes.length > 0
+      ? await prisma.transaction.findMany({
+          where: { txHash: { in: txHashes } },
+          select: { txHash: true, actionType: true },
+        })
+      : [];
+    const actionMap = new Map(indexedTxs.map((t) => [t.txHash.toLowerCase(), t.actionType]));
+
+    const ZERO = "0x0000000000000000000000000000000000000000";
+    const transfers = alchemyTransfers.transfers.map((t: any) => {
+      const from = t.from || "";
+      const to = t.to || "";
+      // Use indexed action if available, otherwise derive from transfer
+      let action = actionMap.get((t.hash as string).toLowerCase()) || "Transfer";
+      if (action === "Transfer") {
+        if (from === ZERO) action = "Mint";
+        else if (to === ZERO) action = "Burn";
+      }
+      return {
+        txHash: t.hash,
+        fromAddress: from,
+        toAddress: to,
+        action,
+        amount: t.rawContract?.value || "0",
+        decimals: t.rawContract?.decimal ? parseInt(t.rawContract.decimal, 16) : (metadata.decimals || 18),
+        tokenSymbol: metadata.symbol || null,
+        timestamp: t.metadata?.blockTimestamp || new Date().toISOString(),
+      };
+    });
+
+    const result = {
       address,
       ...metadata,
       isOeconomia: !!oecToken,
       protocol: oecToken?.protocol || null,
-    });
+      color: oecToken?.color || null,
+      logo: oecToken?.logo || null,
+      official: oecToken?.official || false,
+      deployed: oecToken ? !oecToken.address.startsWith("0x00000") : true,
+      transfers,
+      transferCount: transfers.length,
+      uniqueAddresses: Number(uniqueAddresses[0]?.count || 0),
+    };
+    setCache(cacheKey, result);
+    res.json(result);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch token details" });
+  }
+});
+
+/**
+ * GET /api/tokens/:address/holders
+ * Real on-chain balances for addresses seen in indexed transfers
+ */
+router.get("/tokens/:address/holders", async (req: Request, res: Response) => {
+  try {
+    const { address } = req.params;
+    const cacheKey = `holders:${address.toLowerCase()}`;
+    const cached = getCached(cacheKey);
+    if (cached) return res.json(cached);
+
+    const tokenAddress = address.toLowerCase();
+
+    // 1. Discover unique addresses from indexed transfers
+    const knownAddresses = await prisma.$queryRaw<Array<{ addr: string }>>`
+      SELECT DISTINCT addr FROM (
+        SELECT from_address AS addr FROM token_transfers WHERE LOWER(token_address) = LOWER(${address})
+        UNION
+        SELECT to_address AS addr FROM token_transfers WHERE LOWER(token_address) = LOWER(${address})
+      ) AS addrs
+      LIMIT 100
+    `;
+
+    if (knownAddresses.length === 0) {
+      return res.json({ holders: [], total: 0 });
+    }
+
+    // Build set of known contract addresses from PROTOCOLS + TOKENS
+    const knownContracts = new Set<string>();
+    for (const config of Object.values(PROTOCOLS)) {
+      for (const addr of Object.values(config.contracts)) {
+        knownContracts.add(addr.toLowerCase());
+      }
+    }
+    for (const t of TOKENS) {
+      if (!t.address.startsWith("0x00000")) {
+        knownContracts.add(t.address.toLowerCase());
+      }
+    }
+
+    // 2. Fetch real on-chain balance + contract status for each address
+    const balanceResults = await Promise.all(
+      knownAddresses.map(async ({ addr }) => {
+        try {
+          const [resp, contractFlag] = await Promise.all([
+            getTokenBalances(addr),
+            knownContracts.has(addr.toLowerCase())
+              ? Promise.resolve(true)
+              : isContract(addr),
+          ]);
+          const match = resp.find(
+            (b) => b.contractAddress.toLowerCase() === tokenAddress
+          );
+          return {
+            address: addr,
+            balance: match ? match.balance : "0",
+            isContract: contractFlag,
+          };
+        } catch {
+          return { address: addr, balance: "0", isContract: false };
+        }
+      })
+    );
+
+    // 3. Filter out zero balances, sort descending
+    const holders = balanceResults
+      .filter((h) => {
+        try { return BigInt(h.balance) > 0n; } catch { return false; }
+      })
+      .sort((a, b) => {
+        const diff = BigInt(b.balance) - BigInt(a.balance);
+        return diff > 0n ? 1 : diff < 0n ? -1 : 0;
+      });
+
+    const result = {
+      holders: holders.map((h, i) => ({
+        rank: i + 1,
+        address: h.address,
+        balance: h.balance,
+        isContract: h.isContract,
+      })),
+      total: holders.length,
+    };
+    setCache(cacheKey, result);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch token holders" });
+  }
+});
+
+/**
+ * GET /api/tokens/:address/events
+ * Recent event logs from on-chain via Alchemy
+ */
+router.get("/tokens/:address/events", async (req: Request, res: Response) => {
+  try {
+    const { address } = req.params;
+    const cacheKey = `events:${address.toLowerCase()}`;
+    const cached = getCached(cacheKey);
+    if (cached) return res.json(cached);
+
+    // Use getAssetTransfers (Enhanced API, no block-range limits on free tier)
+    // to get full transfer event history for this token
+    const result = await getAssetTransfers({
+      contractAddresses: [address],
+      category: [AssetTransfersCategory.ERC20],
+      maxCount: 100,
+    });
+
+    const events = result.transfers.map((t: any) => {
+      const rawValue = t.rawContract?.value || "0";
+      let decimalValue: string;
+      try {
+        decimalValue = rawValue.startsWith("0x") ? BigInt(rawValue).toString() : rawValue;
+      } catch {
+        decimalValue = rawValue;
+      }
+      return {
+        blockNumber: t.blockNum ? parseInt(t.blockNum, 16) : 0,
+        transactionHash: t.hash,
+        logIndex: 0,
+        eventName: "Transfer",
+        topics: [
+          "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+        ],
+        data: rawValue,
+        decoded: {
+          from: t.from || "",
+          to: t.to || "",
+          value: decimalValue,
+        },
+        timestamp: (t.metadata as any)?.blockTimestamp || null,
+      };
+    });
+
+    const eventsResult = { events, total: events.length };
+    setCache(cacheKey, eventsResult);
+    res.json(eventsResult);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch token events" });
   }
 });
 

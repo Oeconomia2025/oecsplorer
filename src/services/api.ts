@@ -107,6 +107,29 @@ export async function fetchToken(address: string) {
   return fetchAPI(`/tokens/${address}`);
 }
 
+export async function fetchTokenHolders(address: string) {
+  return fetchAPI<{
+    holders: Array<{ rank: number; address: string; balance: string; isContract: boolean }>;
+    total: number;
+  }>(`/tokens/${address}/holders`);
+}
+
+export async function fetchTokenEvents(address: string) {
+  return fetchAPI<{
+    events: Array<{
+      blockNumber: number;
+      transactionHash: string;
+      logIndex: number;
+      eventName: string | null;
+      topics: string[];
+      data: string;
+      decoded: Record<string, string> | null;
+      timestamp: string | null;
+    }>;
+    total: number;
+  }>(`/tokens/${address}/events`);
+}
+
 // -- Overview ---------------------------------------------------------------
 
 export async function fetchOverview() {
