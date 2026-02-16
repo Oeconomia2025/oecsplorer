@@ -1,0 +1,579 @@
+/* ============================================================
+   Private Keys & Seed Phrases — Scoped under .pk101
+   Amber accent theme
+   ============================================================ */
+
+/* ---- Tokens ---- */
+.pk101 {
+  --pk-main: #f59e0b;
+  --pk-light: #fbbf24;
+  --pk-dim: #d97706;
+  --pk-glow: rgba(245,158,11,0.08);
+  --pk-blue: #3b82f6;
+  --pk-green: #10b981;
+  --pk-red: #ef4444;
+  --pk-purple: #8b5cf6;
+  --pk-orange: #f97316;
+  --pk-amber: #fbbf24;
+  --pk-cyan: #06b6d4;
+
+  font-family: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  letter-spacing: 0.01em;
+}
+
+/* ---- Progress bar ---- */
+.pk101-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+.pk101-progress-steps {
+  display: flex;
+  gap: 8px;
+}
+.pk101-progress-step {
+  flex: 1;
+  height: 4px;
+  background: var(--bd-primary);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.pk101-progress-step:hover {
+  opacity: 0.8;
+  transform: scaleY(1.5);
+}
+.pk101-progress-step.completed {
+  background: var(--pk-main);
+}
+.pk101-progress-step.active {
+  background: linear-gradient(90deg, var(--pk-main), var(--pk-orange));
+  height: 6px;
+}
+.pk101-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--tx-muted);
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+}
+
+/* ---- Lesson accordion ---- */
+.pk101-lesson {
+  background: var(--th-surface);
+  border: 1px solid var(--bd-primary);
+  border-radius: 16px;
+  margin-bottom: 20px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+.pk101-lesson:hover {
+  border-color: rgba(245,158,11,0.3);
+}
+.pk101-lesson.active {
+  border-color: var(--pk-main);
+  box-shadow: 0 0 40px var(--pk-glow);
+}
+.pk101-lesson-header {
+  padding: 20px 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  user-select: none;
+  transition: background 0.2s ease;
+}
+.pk101-lesson-header:hover {
+  background: var(--th-elevated);
+}
+.pk101-lesson-number {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-weight: 700;
+  font-size: 1rem;
+  flex-shrink: 0;
+  background: rgba(245,158,11,0.1);
+  color: var(--pk-main);
+  border: 1px solid rgba(245,158,11,0.2);
+  transition: all 0.3s ease;
+}
+.pk101-lesson.completed .pk101-lesson-number {
+  background: var(--pk-main);
+  color: #000;
+  border-color: var(--pk-main);
+}
+.pk101-lesson-header-text {
+  flex: 1;
+}
+.pk101-lesson-title {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--tx-primary);
+  margin-bottom: 3px;
+}
+.pk101-lesson-meta {
+  font-size: 0.8125rem;
+  color: var(--tx-muted);
+  display: flex;
+  gap: 14px;
+}
+.pk101-lesson-toggle {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--tx-muted);
+  transition: transform 0.3s ease;
+  font-size: 1rem;
+}
+.pk101-lesson.active .pk101-lesson-toggle {
+  transform: rotate(180deg);
+  color: var(--pk-main);
+}
+.pk101-lesson-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s ease;
+}
+.pk101-lesson.active .pk101-lesson-content {
+  max-height: 12000px;
+}
+.pk101-lesson-body {
+  padding: 0 24px 28px;
+  border-top: 1px solid var(--bd-primary);
+  padding-top: 24px;
+}
+.pk101-lesson-body h3 {
+  font-size: 0.8125rem;
+  color: var(--pk-main);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin: 28px 0 14px;
+  font-weight: 700;
+}
+.pk101-lesson-body h3:first-child {
+  margin-top: 0;
+}
+.pk101-lesson-body p {
+  color: var(--tx-secondary);
+  font-size: 0.9375rem;
+  margin-bottom: 14px;
+  line-height: 1.8;
+}
+.pk101-lesson-body strong {
+  color: var(--tx-primary);
+  font-weight: 600;
+}
+.pk101-lesson-body code {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  background: var(--code-bg, rgba(0,0,0,0.2));
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--pk-light);
+}
+
+/* ---- Info boxes ---- */
+.pk101-info-box {
+  background: var(--th-elevated);
+  border-left: 3px solid var(--pk-main);
+  border-radius: 0 12px 12px 0;
+  padding: 18px 22px;
+  margin: 18px 0;
+}
+.pk101-info-box.blue   { border-left-color: var(--pk-blue); }
+.pk101-info-box.green  { border-left-color: var(--pk-green); }
+.pk101-info-box.purple { border-left-color: var(--pk-purple); }
+.pk101-info-box.orange { border-left-color: var(--pk-orange); }
+.pk101-info-box.amber  { border-left-color: var(--pk-amber); }
+.pk101-info-box.cyan   { border-left-color: var(--pk-cyan); }
+.pk101-info-box.red    { border-left-color: var(--pk-red); }
+.pk101-info-box-label {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--pk-main);
+  margin-bottom: 8px;
+}
+.pk101-info-box.blue   .pk101-info-box-label { color: var(--pk-blue); }
+.pk101-info-box.green  .pk101-info-box-label { color: var(--pk-green); }
+.pk101-info-box.purple .pk101-info-box-label { color: var(--pk-purple); }
+.pk101-info-box.orange .pk101-info-box-label { color: var(--pk-orange); }
+.pk101-info-box.amber  .pk101-info-box-label { color: var(--pk-amber); }
+.pk101-info-box.cyan   .pk101-info-box-label { color: var(--pk-cyan); }
+.pk101-info-box.red    .pk101-info-box-label { color: var(--pk-red); }
+.pk101-info-box p {
+  color: var(--tx-secondary);
+  font-size: 0.875rem;
+  margin-bottom: 0;
+}
+
+/* ---- Data blocks ---- */
+.pk101-data-block {
+  background: var(--code-bg, rgba(0,0,0,0.3));
+  border: 1px solid var(--bd-primary);
+  border-radius: 12px;
+  padding: 22px;
+  margin: 18px 0;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  overflow-x: auto;
+}
+.pk101-data-section-label {
+  color: var(--pk-main);
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+}
+.pk101-data-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.pk101-data-row:last-child {
+  border-bottom: none;
+}
+.pk101-data-label {
+  color: var(--tx-muted);
+}
+.pk101-data-value {
+  color: var(--pk-light);
+  text-align: right;
+}
+.pk101-data-value.green  { color: var(--pk-green); }
+.pk101-data-value.blue   { color: var(--pk-blue); }
+.pk101-data-value.orange { color: var(--pk-orange); }
+.pk101-data-value.purple { color: var(--pk-purple); }
+.pk101-data-value.cyan   { color: var(--pk-cyan); }
+.pk101-data-value.red    { color: var(--pk-red); }
+.pk101-data-value.amber  { color: var(--pk-amber); }
+
+/* ---- Compare grid ---- */
+.pk101-compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 18px 0;
+}
+.pk101-compare-card {
+  background: var(--th-elevated);
+  border-radius: 12px;
+  padding: 18px;
+  border: 1px solid var(--bd-primary);
+}
+.pk101-compare-card h4 {
+  font-size: 0.875rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--tx-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pk101-compare-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.pk101-compare-card li {
+  color: var(--tx-secondary);
+  font-size: 0.8125rem;
+  padding: 4px 0 4px 16px;
+  position: relative;
+  line-height: 1.6;
+}
+.pk101-compare-card li::before {
+  content: "\2192";
+  position: absolute;
+  left: 0;
+  color: var(--tx-muted);
+}
+
+/* ---- Stats row ---- */
+.pk101-stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 18px 0;
+}
+.pk101-stat-card {
+  background: var(--th-elevated);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  border: 1px solid var(--bd-primary);
+}
+.pk101-stat-value {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--pk-light);
+  margin-bottom: 4px;
+}
+.pk101-stat-label {
+  font-size: 0.75rem;
+  color: var(--tx-muted);
+}
+
+/* ---- Three-column cards ---- */
+.pk101-three-col {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 18px 0;
+}
+.pk101-col-card {
+  background: var(--th-elevated);
+  border-radius: 12px;
+  padding: 18px;
+  border: 1px solid var(--bd-primary);
+}
+.pk101-col-card h4 {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--pk-main);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+.pk101-col-card p {
+  font-size: 0.8125rem;
+  color: var(--tx-secondary);
+  margin-bottom: 0;
+  line-height: 1.6;
+}
+
+/* ---- Key Pair Visualizer ---- */
+.pk101-keygen {
+  background: var(--code-bg, rgba(0,0,0,0.3));
+  border: 1px solid var(--bd-primary);
+  border-radius: 12px;
+  padding: 24px;
+  margin: 18px 0;
+}
+.pk101-keygen-title {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--pk-main);
+  margin-bottom: 18px;
+  text-align: center;
+}
+.pk101-keygen-chain {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pk101-keygen-block {
+  background: var(--th-elevated);
+  border: 1px solid var(--bd-primary);
+  border-radius: 10px;
+  padding: 14px 18px;
+  transition: all 0.3s ease;
+}
+.pk101-keygen-block.highlight {
+  border-color: var(--pk-main);
+  box-shadow: 0 0 15px rgba(245,158,11,0.1);
+}
+.pk101-keygen-block-label {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 6px;
+}
+.pk101-keygen-block-label.private { color: var(--pk-red); }
+.pk101-keygen-block-label.public  { color: var(--pk-green); }
+.pk101-keygen-block-label.address { color: var(--pk-cyan); }
+.pk101-keygen-block-value {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.75rem;
+  color: var(--tx-secondary);
+  word-break: break-all;
+  line-height: 1.6;
+}
+.pk101-keygen-arrow {
+  text-align: center;
+  color: var(--pk-main);
+  font-size: 1.25rem;
+  padding: 4px 0;
+}
+.pk101-keygen-arrow-label {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--tx-muted);
+  display: block;
+  margin-top: 2px;
+}
+.pk101-keygen-btn {
+  display: block;
+  margin: 18px auto 0;
+  padding: 10px 28px;
+  background: rgba(245,158,11,0.15);
+  border: 1px solid rgba(245,158,11,0.3);
+  border-radius: 10px;
+  color: var(--pk-main);
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.pk101-keygen-btn:hover {
+  background: rgba(245,158,11,0.25);
+  border-color: var(--pk-main);
+}
+
+/* ---- Quiz ---- */
+.pk101-quiz-section {
+  background: var(--th-elevated);
+  border: 1px solid var(--bd-primary);
+  border-radius: 12px;
+  padding: 22px;
+  margin-top: 24px;
+}
+.pk101-quiz-title {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--pk-main);
+  margin-bottom: 14px;
+}
+.pk101-quiz-question {
+  color: var(--tx-primary);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  margin-bottom: 14px;
+}
+.pk101-quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pk101-quiz-option {
+  background: var(--th-surface);
+  border: 1px solid var(--bd-primary);
+  border-radius: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--tx-secondary);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.pk101-quiz-option:hover:not(.disabled) {
+  border-color: var(--pk-main);
+  color: var(--tx-primary);
+  background: var(--th-elevated);
+}
+.pk101-quiz-option .option-letter {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: rgba(245,158,11,0.1);
+  color: var(--pk-main);
+  flex-shrink: 0;
+}
+.pk101-quiz-option.correct {
+  border-color: var(--pk-green);
+  background: rgba(16,185,129,0.08);
+  color: var(--pk-green);
+}
+.pk101-quiz-option.correct .option-letter {
+  background: var(--pk-green);
+  color: #000;
+}
+.pk101-quiz-option.wrong {
+  border-color: var(--pk-red);
+  background: rgba(239,68,68,0.08);
+  color: var(--pk-red);
+  opacity: 0.6;
+}
+.pk101-quiz-option.disabled {
+  pointer-events: none;
+}
+.pk101-quiz-feedback {
+  margin-top: 14px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 0.875rem;
+}
+.pk101-quiz-feedback.correct {
+  background: rgba(16,185,129,0.1);
+  border: 1px solid rgba(16,185,129,0.2);
+  color: var(--pk-green);
+}
+.pk101-quiz-feedback.wrong {
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.2);
+  color: var(--pk-red);
+}
+
+/* ---- Complete button ---- */
+.pk101-complete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px;
+  margin-top: 22px;
+  background: rgba(245,158,11,0.1);
+  border: 1px solid rgba(245,158,11,0.3);
+  border-radius: 12px;
+  color: var(--pk-main);
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.pk101-complete-btn:hover {
+  background: rgba(245,158,11,0.2);
+  border-color: var(--pk-main);
+}
+.pk101-complete-btn.done {
+  background: var(--pk-main);
+  color: #000;
+  border-color: var(--pk-main);
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 640px) {
+  .pk101-compare-grid,
+  .pk101-three-col {
+    grid-template-columns: 1fr;
+  }
+  .pk101-stats-row {
+    grid-template-columns: 1fr;
+  }
+}

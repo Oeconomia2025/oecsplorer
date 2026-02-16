@@ -1,0 +1,732 @@
+/* ============================================================
+   Alluria: Lending, Vaults & ALUD — Scoped under .al101
+   Terracotta/rust accent theme
+   ============================================================ */
+
+/* ---- Tokens ---- */
+.al101 {
+  --al-main: #c06050;
+  --al-light: #d4786a;
+  --al-dim: #a04030;
+  --al-glow: rgba(192,96,80,0.08);
+  --al-blue: #3b82f6;
+  --al-green: #10b981;
+  --al-red: #ef4444;
+  --al-purple: #8b5cf6;
+  --al-orange: #f97316;
+  --al-amber: #fbbf24;
+  --al-cyan: #06b6d4;
+
+  font-family: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  letter-spacing: 0.01em;
+}
+
+/* ---- Progress bar ---- */
+.al101-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+.al101-progress-steps {
+  display: flex;
+  gap: 8px;
+}
+.al101-progress-step {
+  flex: 1;
+  height: 4px;
+  background: var(--bd-primary);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.al101-progress-step:hover {
+  opacity: 0.8;
+  transform: scaleY(1.5);
+}
+.al101-progress-step.completed {
+  background: var(--al-main);
+}
+.al101-progress-step.active {
+  background: linear-gradient(90deg, var(--al-main), var(--al-cyan));
+  height: 6px;
+}
+.al101-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--tx-muted);
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+}
+
+/* ---- Lesson accordion ---- */
+.al101-lesson {
+  background: var(--th-surface);
+  border: 1px solid var(--bd-primary);
+  border-radius: 16px;
+  margin-bottom: 20px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+.al101-lesson:hover {
+  border-color: rgba(192,96,80,0.3);
+}
+.al101-lesson.active {
+  border-color: var(--al-main);
+  box-shadow: 0 0 40px var(--al-glow);
+}
+.al101-lesson-header {
+  padding: 20px 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  user-select: none;
+  transition: background 0.2s ease;
+}
+.al101-lesson-header:hover {
+  background: var(--th-elevated);
+}
+.al101-lesson-number {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-weight: 700;
+  font-size: 1rem;
+  flex-shrink: 0;
+  background: rgba(192,96,80,0.1);
+  color: var(--al-main);
+  border: 1px solid rgba(192,96,80,0.2);
+  transition: all 0.3s ease;
+}
+.al101-lesson.completed .al101-lesson-number {
+  background: var(--al-main);
+  color: #000;
+  border-color: var(--al-main);
+}
+.al101-lesson-header-text {
+  flex: 1;
+}
+.al101-lesson-title {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--tx-primary);
+  margin-bottom: 3px;
+}
+.al101-lesson-meta {
+  font-size: 0.8125rem;
+  color: var(--tx-muted);
+  display: flex;
+  gap: 14px;
+}
+.al101-lesson-toggle {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--tx-muted);
+  transition: transform 0.3s ease;
+  font-size: 1rem;
+}
+.al101-lesson.active .al101-lesson-toggle {
+  transform: rotate(180deg);
+  color: var(--al-main);
+}
+.al101-lesson-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s ease;
+}
+.al101-lesson.active .al101-lesson-content {
+  max-height: 12000px;
+}
+.al101-lesson-body {
+  padding: 0 24px 28px;
+  border-top: 1px solid var(--bd-primary);
+  padding-top: 24px;
+}
+.al101-lesson-body h3 {
+  font-size: 0.8125rem;
+  color: var(--al-main);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin: 28px 0 14px;
+  font-weight: 700;
+}
+.al101-lesson-body h3:first-child {
+  margin-top: 0;
+}
+.al101-lesson-body p {
+  color: var(--tx-secondary);
+  font-size: 0.9375rem;
+  margin-bottom: 14px;
+  line-height: 1.8;
+}
+.al101-lesson-body strong {
+  color: var(--tx-primary);
+  font-weight: 600;
+}
+.al101-lesson-body code {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  background: var(--code-bg, rgba(0,0,0,0.2));
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--al-light);
+}
+
+/* ---- Info boxes ---- */
+.al101-info-box {
+  background: var(--th-elevated);
+  border-left: 3px solid var(--al-main);
+  border-radius: 0 12px 12px 0;
+  padding: 18px 22px;
+  margin: 18px 0;
+}
+.al101-info-box.blue   { border-left-color: var(--al-blue); }
+.al101-info-box.green  { border-left-color: var(--al-green); }
+.al101-info-box.purple { border-left-color: var(--al-purple); }
+.al101-info-box.orange { border-left-color: var(--al-orange); }
+.al101-info-box.amber  { border-left-color: var(--al-amber); }
+.al101-info-box.cyan   { border-left-color: var(--al-cyan); }
+.al101-info-box-label {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--al-main);
+  margin-bottom: 8px;
+}
+.al101-info-box.blue   .al101-info-box-label { color: var(--al-blue); }
+.al101-info-box.green  .al101-info-box-label { color: var(--al-green); }
+.al101-info-box.purple .al101-info-box-label { color: var(--al-purple); }
+.al101-info-box.orange .al101-info-box-label { color: var(--al-orange); }
+.al101-info-box.amber  .al101-info-box-label { color: var(--al-amber); }
+.al101-info-box.cyan   .al101-info-box-label { color: var(--al-cyan); }
+.al101-info-box p {
+  color: var(--tx-secondary);
+  font-size: 0.875rem;
+  margin-bottom: 0;
+}
+
+/* ---- Data blocks ---- */
+.al101-data-block {
+  background: var(--code-bg, rgba(0,0,0,0.3));
+  border: 1px solid var(--bd-primary);
+  border-radius: 12px;
+  padding: 22px;
+  margin: 18px 0;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  overflow-x: auto;
+}
+.al101-data-section-label {
+  color: var(--al-main);
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+}
+.al101-data-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.al101-data-row:last-child {
+  border-bottom: none;
+}
+.al101-data-label {
+  color: var(--tx-muted);
+}
+.al101-data-value {
+  color: var(--al-light);
+  text-align: right;
+}
+.al101-data-value.green  { color: var(--al-green); }
+.al101-data-value.blue   { color: var(--al-blue); }
+.al101-data-value.orange { color: var(--al-orange); }
+.al101-data-value.purple { color: var(--al-purple); }
+.al101-data-value.cyan   { color: var(--al-cyan); }
+.al101-data-value.red    { color: var(--al-red); }
+.al101-data-value.amber  { color: var(--al-amber); }
+
+/* ---- Compare grid ---- */
+.al101-compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 18px 0;
+}
+.al101-compare-card {
+  background: var(--th-elevated);
+  border-radius: 12px;
+  padding: 18px;
+  border: 1px solid var(--bd-primary);
+}
+.al101-compare-card h4 {
+  font-size: 0.875rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--tx-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.al101-compare-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.al101-compare-card li {
+  color: var(--tx-secondary);
+  font-size: 0.8125rem;
+  padding: 4px 0 4px 16px;
+  position: relative;
+  line-height: 1.6;
+}
+.al101-compare-card li::before {
+  content: "\2192";
+  position: absolute;
+  left: 0;
+  color: var(--tx-muted);
+}
+
+/* ---- Stats row ---- */
+.al101-stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 18px 0;
+}
+.al101-stat-card {
+  background: var(--th-elevated);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  border: 1px solid var(--bd-primary);
+}
+.al101-stat-value {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--al-light);
+  margin-bottom: 4px;
+}
+.al101-stat-label {
+  font-size: 0.75rem;
+  color: var(--tx-muted);
+}
+
+/* ---- Three-column cards ---- */
+.al101-three-col {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 18px 0;
+}
+.al101-col-card {
+  background: var(--th-elevated);
+  border-radius: 12px;
+  padding: 18px;
+  border: 1px solid var(--bd-primary);
+}
+.al101-col-card h4 {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--al-main);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+.al101-col-card p {
+  font-size: 0.8125rem;
+  color: var(--tx-secondary);
+  margin-bottom: 0;
+  line-height: 1.6;
+}
+
+/* ---- Ecosystem cards ---- */
+.al101-eco-card {
+  background: var(--th-elevated);
+  border: 1px solid var(--bd-primary);
+  border-radius: 12px;
+  padding: 22px;
+  margin: 16px 0;
+  transition: border-color 0.2s;
+}
+.al101-eco-card:hover {
+  border-color: rgba(192,96,80,0.3);
+}
+.al101-eco-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.al101-eco-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.125rem;
+  flex-shrink: 0;
+}
+.al101-eco-icon.defi { background: rgba(16,185,129,0.15); }
+.al101-eco-icon.nft  { background: rgba(249,115,22,0.15); }
+.al101-eco-icon.dao  { background: rgba(6,182,212,0.15); }
+.al101-eco-name {
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: var(--tx-primary);
+}
+.al101-eco-sub {
+  font-size: 0.75rem;
+  color: var(--tx-muted);
+}
+.al101-eco-body p {
+  font-size: 0.875rem;
+  color: var(--tx-secondary);
+  margin-bottom: 8px;
+  line-height: 1.7;
+}
+.al101-eco-body p:last-child {
+  margin-bottom: 0;
+}
+.al101-eco-examples {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.al101-eco-tag {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.625rem;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.04);
+  color: var(--tx-muted);
+  border: 1px solid var(--bd-primary);
+}
+
+/* ---- Timeline ---- */
+.al101-timeline {
+  position: relative;
+  padding-left: 32px;
+  margin: 18px 0;
+}
+.al101-timeline::before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--al-green), var(--al-main), var(--al-red));
+  border-radius: 2px;
+}
+.al101-timeline-item {
+  position: relative;
+  padding: 12px 0;
+}
+.al101-timeline-item::before {
+  content: "";
+  position: absolute;
+  left: -28px;
+  top: 20px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--al-main);
+  border: 2px solid var(--th-surface);
+}
+.al101-timeline-item.safe::before {
+  background: var(--al-green);
+}
+.al101-timeline-item.warning::before {
+  background: var(--al-amber);
+}
+.al101-timeline-item.danger::before {
+  background: var(--al-red);
+}
+.al101-timeline-date {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.75rem;
+  color: var(--al-light);
+  margin-bottom: 4px;
+}
+.al101-timeline-text {
+  color: var(--tx-secondary);
+  font-size: 0.875rem;
+}
+.al101-timeline-text strong {
+  color: var(--tx-primary);
+}
+
+/* ---- Vault Health Monitor Interactive ---- */
+.al101-vault-monitor {
+  background: var(--code-bg, rgba(0,0,0,0.3));
+  border: 1px solid var(--bd-primary);
+  border-radius: 12px;
+  padding: 24px;
+  margin: 18px 0;
+}
+.al101-vault-monitor-title {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--al-main);
+  margin-bottom: 16px;
+}
+.al101-vault-row {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.al101-vault-input-group {
+  flex: 1;
+  min-width: 130px;
+}
+.al101-vault-input-label {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--tx-muted);
+  margin-bottom: 6px;
+}
+.al101-vault-slider {
+  width: 100%;
+  accent-color: var(--al-main);
+  margin: 6px 0;
+}
+.al101-vault-value {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.875rem;
+  color: var(--al-light);
+  text-align: center;
+}
+.al101-vault-gauge {
+  text-align: center;
+  padding: 20px;
+  border-radius: 10px;
+  margin-top: 12px;
+  transition: all 0.3s ease;
+}
+.al101-vault-gauge.safe {
+  background: rgba(16,185,129,0.08);
+  border: 1px solid rgba(16,185,129,0.2);
+}
+.al101-vault-gauge.warning {
+  background: rgba(251,191,36,0.08);
+  border: 1px solid rgba(251,191,36,0.2);
+}
+.al101-vault-gauge.danger {
+  background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239,68,68,0.2);
+  animation: al101-pulse-danger 1s ease-in-out infinite;
+}
+@keyframes al101-pulse-danger {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.2); }
+  50% { box-shadow: 0 0 20px 4px rgba(239,68,68,0.3); }
+}
+.al101-vault-gauge-value {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+.al101-vault-gauge-value.safe { color: var(--al-green); }
+.al101-vault-gauge-value.warning { color: var(--al-amber); }
+.al101-vault-gauge-value.danger { color: var(--al-red); }
+.al101-vault-gauge-label {
+  font-size: 0.75rem;
+  color: var(--tx-muted);
+  margin-top: 4px;
+}
+.al101-vault-gauge-status {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  margin-top: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.al101-vault-gauge-status.safe { color: var(--al-green); }
+.al101-vault-gauge-status.warning { color: var(--al-amber); }
+.al101-vault-gauge-status.danger { color: var(--al-red); }
+.al101-vault-liquidation {
+  text-align: center;
+  padding: 16px;
+  margin-top: 12px;
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.2);
+  border-radius: 10px;
+}
+.al101-vault-liquidation-title {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--al-red);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+.al101-vault-liquidation-detail {
+  font-size: 0.8125rem;
+  color: var(--tx-secondary);
+  margin: 4px 0;
+}
+
+/* ---- Quiz ---- */
+.al101-quiz-section {
+  background: var(--th-elevated);
+  border: 1px solid var(--bd-primary);
+  border-radius: 12px;
+  padding: 22px;
+  margin-top: 24px;
+}
+.al101-quiz-title {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--al-main);
+  margin-bottom: 14px;
+}
+.al101-quiz-question {
+  color: var(--tx-primary);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  margin-bottom: 14px;
+}
+.al101-quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.al101-quiz-option {
+  background: var(--th-surface);
+  border: 1px solid var(--bd-primary);
+  border-radius: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--tx-secondary);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.al101-quiz-option:hover:not(.disabled) {
+  border-color: var(--al-main);
+  color: var(--tx-primary);
+  background: var(--th-elevated);
+}
+.al101-quiz-option .option-letter {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: rgba(192,96,80,0.1);
+  color: var(--al-main);
+  flex-shrink: 0;
+}
+.al101-quiz-option.correct {
+  border-color: var(--al-green);
+  background: rgba(16,185,129,0.08);
+  color: var(--al-green);
+}
+.al101-quiz-option.correct .option-letter {
+  background: var(--al-green);
+  color: #000;
+}
+.al101-quiz-option.wrong {
+  border-color: var(--al-red);
+  background: rgba(239,68,68,0.08);
+  color: var(--al-red);
+  opacity: 0.6;
+}
+.al101-quiz-option.disabled {
+  pointer-events: none;
+}
+.al101-quiz-feedback {
+  margin-top: 14px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 0.875rem;
+}
+.al101-quiz-feedback.correct {
+  background: rgba(16,185,129,0.1);
+  border: 1px solid rgba(16,185,129,0.2);
+  color: var(--al-green);
+}
+.al101-quiz-feedback.wrong {
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.2);
+  color: var(--al-red);
+}
+
+/* ---- Complete button ---- */
+.al101-complete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px;
+  margin-top: 22px;
+  background: rgba(192,96,80,0.1);
+  border: 1px solid rgba(192,96,80,0.3);
+  border-radius: 12px;
+  color: var(--al-main);
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.al101-complete-btn:hover {
+  background: rgba(192,96,80,0.2);
+  border-color: var(--al-main);
+}
+.al101-complete-btn.done {
+  background: var(--al-main);
+  color: #000;
+  border-color: var(--al-main);
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 640px) {
+  .al101-compare-grid,
+  .al101-three-col {
+    grid-template-columns: 1fr;
+  }
+  .al101-stats-row {
+    grid-template-columns: 1fr;
+  }
+  .al101-vault-row {
+    flex-direction: column;
+  }
+}

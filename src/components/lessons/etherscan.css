@@ -1,0 +1,629 @@
+/* ============================================================
+   Reading Etherscan 101 — Scoped under .es101
+   Indigo accent theme
+   ============================================================ */
+
+/* ---- Tokens ---- */
+.es101 {
+  --es-main: #6366f1;
+  --es-light: #818cf8;
+  --es-dim: #4f46e5;
+  --es-glow: rgba(99,102,241,0.08);
+  --es-blue: #3b82f6;
+  --es-green: #10b981;
+  --es-red: #ef4444;
+  --es-purple: #8b5cf6;
+  --es-orange: #f97316;
+  --es-amber: #fbbf24;
+  --es-cyan: #06b6d4;
+
+  font-family: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  letter-spacing: 0.01em;
+}
+
+/* ---- Progress bar ---- */
+.es101-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+.es101-progress-steps {
+  display: flex;
+  gap: 8px;
+}
+.es101-progress-step {
+  flex: 1;
+  height: 4px;
+  background: var(--bd-primary);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.es101-progress-step:hover {
+  opacity: 0.8;
+  transform: scaleY(1.5);
+}
+.es101-progress-step.completed {
+  background: var(--es-main);
+}
+.es101-progress-step.active {
+  background: linear-gradient(90deg, var(--es-main), var(--es-cyan));
+  height: 6px;
+}
+.es101-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--tx-muted);
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+}
+
+/* ---- Lesson accordion ---- */
+.es101-lesson {
+  background: var(--th-surface);
+  border: 1px solid var(--bd-primary);
+  border-radius: 16px;
+  margin-bottom: 20px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+.es101-lesson:hover {
+  border-color: rgba(99,102,241,0.3);
+}
+.es101-lesson.active {
+  border-color: var(--es-main);
+  box-shadow: 0 0 40px var(--es-glow);
+}
+.es101-lesson-header {
+  padding: 20px 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  user-select: none;
+  transition: background 0.2s ease;
+}
+.es101-lesson-header:hover {
+  background: var(--th-elevated);
+}
+.es101-lesson-number {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-weight: 700;
+  font-size: 1rem;
+  flex-shrink: 0;
+  background: rgba(99,102,241,0.1);
+  color: var(--es-main);
+  border: 1px solid rgba(99,102,241,0.2);
+  transition: all 0.3s ease;
+}
+.es101-lesson.completed .es101-lesson-number {
+  background: var(--es-main);
+  color: #000;
+  border-color: var(--es-main);
+}
+.es101-lesson-header-text {
+  flex: 1;
+}
+.es101-lesson-title {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--tx-primary);
+  margin-bottom: 3px;
+}
+.es101-lesson-meta {
+  font-size: 0.8125rem;
+  color: var(--tx-muted);
+  display: flex;
+  gap: 14px;
+}
+.es101-lesson-toggle {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--tx-muted);
+  transition: transform 0.3s ease;
+  font-size: 1rem;
+}
+.es101-lesson.active .es101-lesson-toggle {
+  transform: rotate(180deg);
+  color: var(--es-main);
+}
+.es101-lesson-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s ease;
+}
+.es101-lesson.active .es101-lesson-content {
+  max-height: 12000px;
+}
+.es101-lesson-body {
+  padding: 0 24px 28px;
+  border-top: 1px solid var(--bd-primary);
+  padding-top: 24px;
+}
+.es101-lesson-body h3 {
+  font-size: 0.8125rem;
+  color: var(--es-main);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin: 28px 0 14px;
+  font-weight: 700;
+}
+.es101-lesson-body h3:first-child {
+  margin-top: 0;
+}
+.es101-lesson-body p {
+  color: var(--tx-secondary);
+  font-size: 0.9375rem;
+  margin-bottom: 14px;
+  line-height: 1.8;
+}
+.es101-lesson-body strong {
+  color: var(--tx-primary);
+  font-weight: 600;
+}
+.es101-lesson-body code {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  background: var(--code-bg, rgba(0,0,0,0.2));
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--es-light);
+}
+
+/* ---- Info boxes ---- */
+.es101-info-box {
+  background: var(--th-elevated);
+  border-left: 3px solid var(--es-main);
+  border-radius: 0 12px 12px 0;
+  padding: 18px 22px;
+  margin: 18px 0;
+}
+.es101-info-box.blue   { border-left-color: var(--es-blue); }
+.es101-info-box.green  { border-left-color: var(--es-green); }
+.es101-info-box.purple { border-left-color: var(--es-purple); }
+.es101-info-box.orange { border-left-color: var(--es-orange); }
+.es101-info-box.amber  { border-left-color: var(--es-amber); }
+.es101-info-box.cyan   { border-left-color: var(--es-cyan); }
+.es101-info-box-label {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--es-main);
+  margin-bottom: 8px;
+}
+.es101-info-box.blue   .es101-info-box-label { color: var(--es-blue); }
+.es101-info-box.green  .es101-info-box-label { color: var(--es-green); }
+.es101-info-box.purple .es101-info-box-label { color: var(--es-purple); }
+.es101-info-box.orange .es101-info-box-label { color: var(--es-orange); }
+.es101-info-box.amber  .es101-info-box-label { color: var(--es-amber); }
+.es101-info-box.cyan   .es101-info-box-label { color: var(--es-cyan); }
+.es101-info-box p {
+  color: var(--tx-secondary);
+  font-size: 0.875rem;
+  margin-bottom: 0;
+}
+
+/* ---- Data blocks ---- */
+.es101-data-block {
+  background: var(--code-bg, rgba(0,0,0,0.3));
+  border: 1px solid var(--bd-primary);
+  border-radius: 12px;
+  padding: 22px;
+  margin: 18px 0;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  overflow-x: auto;
+}
+.es101-data-section-label {
+  color: var(--es-main);
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+}
+.es101-data-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.es101-data-row:last-child {
+  border-bottom: none;
+}
+.es101-data-label {
+  color: var(--tx-muted);
+}
+.es101-data-value {
+  color: var(--es-light);
+  text-align: right;
+}
+.es101-data-value.green  { color: var(--es-green); }
+.es101-data-value.blue   { color: var(--es-blue); }
+.es101-data-value.orange { color: var(--es-orange); }
+.es101-data-value.purple { color: var(--es-purple); }
+.es101-data-value.cyan   { color: var(--es-cyan); }
+.es101-data-value.red    { color: var(--es-red); }
+.es101-data-value.amber  { color: var(--es-amber); }
+
+/* ---- Compare grid ---- */
+.es101-compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 18px 0;
+}
+.es101-compare-card {
+  background: var(--th-elevated);
+  border-radius: 12px;
+  padding: 18px;
+  border: 1px solid var(--bd-primary);
+}
+.es101-compare-card h4 {
+  font-size: 0.875rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--tx-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.es101-compare-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.es101-compare-card li {
+  color: var(--tx-secondary);
+  font-size: 0.8125rem;
+  padding: 4px 0 4px 16px;
+  position: relative;
+  line-height: 1.6;
+}
+.es101-compare-card li::before {
+  content: "\2192";
+  position: absolute;
+  left: 0;
+  color: var(--tx-muted);
+}
+
+/* ---- Stats row ---- */
+.es101-stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 18px 0;
+}
+.es101-stat-card {
+  background: var(--th-elevated);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  border: 1px solid var(--bd-primary);
+}
+.es101-stat-value {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--es-light);
+  margin-bottom: 4px;
+}
+.es101-stat-label {
+  font-size: 0.75rem;
+  color: var(--tx-muted);
+}
+
+/* ---- Three-column cards ---- */
+.es101-three-col {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 18px 0;
+}
+.es101-col-card {
+  background: var(--th-elevated);
+  border-radius: 12px;
+  padding: 18px;
+  border: 1px solid var(--bd-primary);
+}
+.es101-col-card h4 {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--es-main);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+.es101-col-card p {
+  font-size: 0.8125rem;
+  color: var(--tx-secondary);
+  margin-bottom: 0;
+  line-height: 1.6;
+}
+
+/* ---- Contract code visual ---- */
+.es101-contract-visual {
+  background: var(--code-bg, rgba(0,0,0,0.3));
+  border: 1px solid var(--bd-primary);
+  border-radius: 12px;
+  padding: 22px;
+  margin: 18px 0;
+  overflow-x: auto;
+}
+.es101-contract-code {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.75rem;
+  line-height: 1.8;
+  color: var(--tx-secondary);
+  white-space: pre;
+}
+.es101-contract-code .keyword { color: var(--es-main); }
+.es101-contract-code .type    { color: var(--es-cyan); }
+.es101-contract-code .func    { color: var(--es-amber); }
+.es101-contract-code .comment { color: var(--tx-muted); font-style: italic; }
+.es101-contract-code .str     { color: var(--es-green); }
+.es101-contract-code .num     { color: var(--es-orange); }
+
+/* ---- Transaction decoder ---- */
+.es101-decoder {
+  background: var(--code-bg, rgba(0,0,0,0.3));
+  border: 1px solid var(--bd-primary);
+  border-radius: 12px;
+  padding: 24px;
+  margin: 18px 0;
+}
+.es101-decoder-raw {
+  background: var(--th-surface);
+  border: 1px solid var(--bd-primary);
+  border-radius: 10px;
+  padding: 16px;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.6875rem;
+  line-height: 1.6;
+  color: var(--tx-muted);
+  word-break: break-all;
+  margin-bottom: 14px;
+  transition: all 0.3s ease;
+}
+.es101-decoder-raw .selector {
+  color: var(--es-main);
+  font-weight: 700;
+}
+.es101-decoder-raw .param {
+  color: var(--es-cyan);
+}
+.es101-decode-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  background: rgba(99,102,241,0.1);
+  border: 1px solid rgba(99,102,241,0.3);
+  border-radius: 10px;
+  color: var(--es-main);
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 14px;
+}
+.es101-decode-btn:hover {
+  background: rgba(99,102,241,0.2);
+  border-color: var(--es-main);
+}
+.es101-decode-btn.decoded {
+  background: rgba(16,185,129,0.1);
+  border-color: rgba(16,185,129,0.3);
+  color: var(--es-green);
+  cursor: default;
+}
+.es101-decoded-result {
+  background: var(--th-elevated);
+  border: 1px solid var(--bd-primary);
+  border-radius: 10px;
+  padding: 18px;
+  animation: es101-fadeIn 0.4s ease;
+}
+.es101-decoded-header {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--es-main);
+  margin-bottom: 12px;
+}
+.es101-decoded-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  gap: 12px;
+  flex-wrap: wrap;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.75rem;
+}
+.es101-decoded-row:last-child {
+  border-bottom: none;
+}
+.es101-decoded-key {
+  color: var(--tx-muted);
+}
+.es101-decoded-val {
+  color: var(--es-light);
+  text-align: right;
+  word-break: break-all;
+}
+.es101-decoded-val.func {
+  color: var(--es-amber);
+  font-weight: 600;
+}
+.es101-decoded-val.addr {
+  color: var(--es-cyan);
+}
+.es101-decoded-val.num {
+  color: var(--es-orange);
+}
+.es101-decoded-val.success {
+  color: var(--es-green);
+}
+
+@keyframes es101-fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- Quiz ---- */
+.es101-quiz-section {
+  background: var(--th-elevated);
+  border: 1px solid var(--bd-primary);
+  border-radius: 12px;
+  padding: 22px;
+  margin-top: 24px;
+}
+.es101-quiz-title {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--es-main);
+  margin-bottom: 14px;
+}
+.es101-quiz-question {
+  color: var(--tx-primary);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  margin-bottom: 14px;
+}
+.es101-quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.es101-quiz-option {
+  background: var(--th-surface);
+  border: 1px solid var(--bd-primary);
+  border-radius: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--tx-secondary);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.es101-quiz-option:hover:not(.disabled) {
+  border-color: var(--es-main);
+  color: var(--tx-primary);
+  background: var(--th-elevated);
+}
+.es101-quiz-option .option-letter {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: rgba(99,102,241,0.1);
+  color: var(--es-main);
+  flex-shrink: 0;
+}
+.es101-quiz-option.correct {
+  border-color: var(--es-green);
+  background: rgba(16,185,129,0.08);
+  color: var(--es-green);
+}
+.es101-quiz-option.correct .option-letter {
+  background: var(--es-green);
+  color: #000;
+}
+.es101-quiz-option.wrong {
+  border-color: var(--es-red);
+  background: rgba(239,68,68,0.08);
+  color: var(--es-red);
+  opacity: 0.6;
+}
+.es101-quiz-option.disabled {
+  pointer-events: none;
+}
+.es101-quiz-feedback {
+  margin-top: 14px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 0.875rem;
+}
+.es101-quiz-feedback.correct {
+  background: rgba(16,185,129,0.1);
+  border: 1px solid rgba(16,185,129,0.2);
+  color: var(--es-green);
+}
+.es101-quiz-feedback.wrong {
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.2);
+  color: var(--es-red);
+}
+
+/* ---- Complete button ---- */
+.es101-complete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px;
+  margin-top: 22px;
+  background: rgba(99,102,241,0.1);
+  border: 1px solid rgba(99,102,241,0.3);
+  border-radius: 12px;
+  color: var(--es-main);
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.es101-complete-btn:hover {
+  background: rgba(99,102,241,0.2);
+  border-color: var(--es-main);
+}
+.es101-complete-btn.done {
+  background: var(--es-main);
+  color: #000;
+  border-color: var(--es-main);
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 640px) {
+  .es101-compare-grid,
+  .es101-three-col {
+    grid-template-columns: 1fr;
+  }
+  .es101-stats-row {
+    grid-template-columns: 1fr;
+  }
+}

@@ -6,6 +6,49 @@ import { useParams, Link } from "react-router-dom";
 import { getLessonBySlug, getLessonsByCategory, getCategoryById } from "@/data/lessons";
 import { EmptyState } from "@/components/shared";
 import LessonCard from "@/components/LessonCard";
+import Bitcoin101Content from "@/components/lessons/Bitcoin101Content";
+import BlockchainContent from "@/components/lessons/BlockchainContent";
+import ConsensusContent from "@/components/lessons/ConsensusContent";
+import EthereumContent from "@/components/lessons/EthereumContent";
+import MetaMaskContent from "@/components/lessons/MetaMaskContent";
+import PrivateKeysContent from "@/components/lessons/PrivateKeysContent";
+import TxSafetyContent from "@/components/lessons/TxSafetyContent";
+import Web3Content from "@/components/lessons/Web3Content";
+import DefiContent from "@/components/lessons/DefiContent";
+import YieldContent from "@/components/lessons/YieldContent";
+import SmartContractsContent from "@/components/lessons/SmartContractsContent";
+import ERC20Content from "@/components/lessons/ERC20Content";
+import EtherscanContent from "@/components/lessons/EtherscanContent";
+import OecDaoContent from "@/components/lessons/OecDaoContent";
+import FiveProtocolsContent from "@/components/lessons/FiveProtocolsContent";
+import GovernanceContent from "@/components/lessons/GovernanceContent";
+import EloquraContent from "@/components/lessons/EloquraContent";
+import AlluriaContent from "@/components/lessons/AlluriaContent";
+import ArtivyaContent from "@/components/lessons/ArtivyaContent";
+import IridesciaContent from "@/components/lessons/IridesciaContent";
+
+const LESSON_COMPONENTS: Record<string, React.ComponentType> = {
+  "bitcoin-101": Bitcoin101Content,
+  "how-blockchain-works": BlockchainContent,
+  "consensus-mechanisms": ConsensusContent,
+  "ethereum-101": EthereumContent,
+  "setting-up-metamask": MetaMaskContent,
+  "private-keys-seed-phrases": PrivateKeysContent,
+  "transaction-safety": TxSafetyContent,
+  "what-is-web3": Web3Content,
+  "defi-explained": DefiContent,
+  "yield-farming": YieldContent,
+  "what-are-smart-contracts": SmartContractsContent,
+  "erc20-tokens": ERC20Content,
+  "reading-etherscan": EtherscanContent,
+  "oeconomia-dao": OecDaoContent,
+  "five-protocols": FiveProtocolsContent,
+  "governance-guardians": GovernanceContent,
+  "eloqura-deep-dive": EloquraContent,
+  "alluria-deep-dive": AlluriaContent,
+  "artivya-deep-dive": ArtivyaContent,
+  "iridescia-deep-dive": IridesciaContent,
+};
 
 const DIFFICULTY_COLORS: Record<string, string> = {
   Beginner: "#10B981",
@@ -144,12 +187,19 @@ export default function LearnLessonPage() {
         </ul>
       </div>
 
-      {/* Content placeholder */}
-      <EmptyState
-        icon="📝"
-        title="Lesson content coming soon"
-        description="Full lesson content is being written. Check back soon for the complete article."
-      />
+      {/* Lesson content */}
+      {(() => {
+        const Content = LESSON_COMPONENTS[lesson.slug];
+        return Content ? (
+          <Content />
+        ) : (
+          <EmptyState
+            icon="📝"
+            title="Lesson content coming soon"
+            description="Full lesson content is being written. Check back soon for the complete article."
+          />
+        );
+      })()}
 
       {/* Related lessons */}
       {related.length > 0 && (

@@ -1,0 +1,846 @@
+/* ============================================================
+   Governance & Guardians: Staking for Power — Scoped under .gg101
+   Cyan accent theme
+   ============================================================ */
+
+/* ---- Tokens ---- */
+.gg101 {
+  --gg-main: #06b6d4;
+  --gg-light: #22d3ee;
+  --gg-dim: #0891b2;
+  --gg-glow: rgba(6,182,212,0.08);
+  --gg-blue: #3b82f6;
+  --gg-green: #10b981;
+  --gg-red: #ef4444;
+  --gg-purple: #8b5cf6;
+  --gg-orange: #f97316;
+  --gg-amber: #fbbf24;
+  --gg-cyan: #06b6d4;
+
+  font-family: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  letter-spacing: 0.01em;
+}
+
+/* ---- Progress bar ---- */
+.gg101-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+.gg101-progress-steps {
+  display: flex;
+  gap: 8px;
+}
+.gg101-progress-step {
+  flex: 1;
+  height: 4px;
+  background: var(--bd-primary);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.gg101-progress-step:hover {
+  opacity: 0.8;
+  transform: scaleY(1.5);
+}
+.gg101-progress-step.completed {
+  background: var(--gg-main);
+}
+.gg101-progress-step.active {
+  background: linear-gradient(90deg, var(--gg-main), var(--gg-purple));
+  height: 6px;
+}
+.gg101-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--tx-muted);
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+}
+
+/* ---- Lesson accordion ---- */
+.gg101-lesson {
+  background: var(--th-surface);
+  border: 1px solid var(--bd-primary);
+  border-radius: 16px;
+  margin-bottom: 20px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+.gg101-lesson:hover {
+  border-color: rgba(6,182,212,0.3);
+}
+.gg101-lesson.active {
+  border-color: var(--gg-main);
+  box-shadow: 0 0 40px var(--gg-glow);
+}
+.gg101-lesson-header {
+  padding: 20px 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  user-select: none;
+  transition: background 0.2s ease;
+}
+.gg101-lesson-header:hover {
+  background: var(--th-elevated);
+}
+.gg101-lesson-number {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-weight: 700;
+  font-size: 1rem;
+  flex-shrink: 0;
+  background: rgba(6,182,212,0.1);
+  color: var(--gg-main);
+  border: 1px solid rgba(6,182,212,0.2);
+  transition: all 0.3s ease;
+}
+.gg101-lesson.completed .gg101-lesson-number {
+  background: var(--gg-main);
+  color: #000;
+  border-color: var(--gg-main);
+}
+.gg101-lesson-header-text {
+  flex: 1;
+}
+.gg101-lesson-title {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--tx-primary);
+  margin-bottom: 3px;
+}
+.gg101-lesson-meta {
+  font-size: 0.8125rem;
+  color: var(--tx-muted);
+  display: flex;
+  gap: 14px;
+}
+.gg101-lesson-toggle {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--tx-muted);
+  transition: transform 0.3s ease;
+  font-size: 1rem;
+}
+.gg101-lesson.active .gg101-lesson-toggle {
+  transform: rotate(180deg);
+  color: var(--gg-main);
+}
+.gg101-lesson-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s ease;
+}
+.gg101-lesson.active .gg101-lesson-content {
+  max-height: 12000px;
+}
+.gg101-lesson-body {
+  padding: 0 24px 28px;
+  border-top: 1px solid var(--bd-primary);
+  padding-top: 24px;
+}
+.gg101-lesson-body h3 {
+  font-size: 0.8125rem;
+  color: var(--gg-main);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin: 28px 0 14px;
+  font-weight: 700;
+}
+.gg101-lesson-body h3:first-child {
+  margin-top: 0;
+}
+.gg101-lesson-body p {
+  color: var(--tx-secondary);
+  font-size: 0.9375rem;
+  margin-bottom: 14px;
+  line-height: 1.8;
+}
+.gg101-lesson-body strong {
+  color: var(--tx-primary);
+  font-weight: 600;
+}
+.gg101-lesson-body code {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  background: var(--code-bg, rgba(0,0,0,0.2));
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--gg-light);
+}
+
+/* ---- Info boxes ---- */
+.gg101-info-box {
+  background: var(--th-elevated);
+  border-left: 3px solid var(--gg-main);
+  border-radius: 0 12px 12px 0;
+  padding: 18px 22px;
+  margin: 18px 0;
+}
+.gg101-info-box.blue   { border-left-color: var(--gg-blue); }
+.gg101-info-box.green  { border-left-color: var(--gg-green); }
+.gg101-info-box.purple { border-left-color: var(--gg-purple); }
+.gg101-info-box.orange { border-left-color: var(--gg-orange); }
+.gg101-info-box.amber  { border-left-color: var(--gg-amber); }
+.gg101-info-box.cyan   { border-left-color: var(--gg-cyan); }
+.gg101-info-box-label {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--gg-main);
+  margin-bottom: 8px;
+}
+.gg101-info-box.blue   .gg101-info-box-label { color: var(--gg-blue); }
+.gg101-info-box.green  .gg101-info-box-label { color: var(--gg-green); }
+.gg101-info-box.purple .gg101-info-box-label { color: var(--gg-purple); }
+.gg101-info-box.orange .gg101-info-box-label { color: var(--gg-orange); }
+.gg101-info-box.amber  .gg101-info-box-label { color: var(--gg-amber); }
+.gg101-info-box.cyan   .gg101-info-box-label { color: var(--gg-cyan); }
+.gg101-info-box p {
+  color: var(--tx-secondary);
+  font-size: 0.875rem;
+  margin-bottom: 0;
+}
+
+/* ---- Data blocks ---- */
+.gg101-data-block {
+  background: var(--code-bg, rgba(0,0,0,0.3));
+  border: 1px solid var(--bd-primary);
+  border-radius: 12px;
+  padding: 22px;
+  margin: 18px 0;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  overflow-x: auto;
+}
+.gg101-data-section-label {
+  color: var(--gg-main);
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+}
+.gg101-data-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.gg101-data-row:last-child {
+  border-bottom: none;
+}
+.gg101-data-label {
+  color: var(--tx-muted);
+}
+.gg101-data-value {
+  color: var(--gg-light);
+  text-align: right;
+}
+.gg101-data-value.green  { color: var(--gg-green); }
+.gg101-data-value.blue   { color: var(--gg-blue); }
+.gg101-data-value.orange { color: var(--gg-orange); }
+.gg101-data-value.purple { color: var(--gg-purple); }
+.gg101-data-value.cyan   { color: var(--gg-cyan); }
+.gg101-data-value.red    { color: var(--gg-red); }
+.gg101-data-value.amber  { color: var(--gg-amber); }
+
+/* ---- Compare grid ---- */
+.gg101-compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 18px 0;
+}
+.gg101-compare-card {
+  background: var(--th-elevated);
+  border-radius: 12px;
+  padding: 18px;
+  border: 1px solid var(--bd-primary);
+}
+.gg101-compare-card h4 {
+  font-size: 0.875rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--tx-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.gg101-compare-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.gg101-compare-card li {
+  color: var(--tx-secondary);
+  font-size: 0.8125rem;
+  padding: 4px 0 4px 16px;
+  position: relative;
+  line-height: 1.6;
+}
+.gg101-compare-card li::before {
+  content: "\2192";
+  position: absolute;
+  left: 0;
+  color: var(--tx-muted);
+}
+
+/* ---- Stats row ---- */
+.gg101-stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 18px 0;
+}
+.gg101-stat-card {
+  background: var(--th-elevated);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  border: 1px solid var(--bd-primary);
+}
+.gg101-stat-value {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--gg-light);
+  margin-bottom: 4px;
+}
+.gg101-stat-label {
+  font-size: 0.75rem;
+  color: var(--tx-muted);
+}
+
+/* ---- Three-column cards ---- */
+.gg101-three-col {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 18px 0;
+}
+.gg101-col-card {
+  background: var(--th-elevated);
+  border-radius: 12px;
+  padding: 18px;
+  border: 1px solid var(--bd-primary);
+}
+.gg101-col-card h4 {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--gg-main);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+.gg101-col-card p {
+  font-size: 0.8125rem;
+  color: var(--tx-secondary);
+  margin-bottom: 0;
+  line-height: 1.6;
+}
+
+/* ---- Ecosystem cards ---- */
+.gg101-eco-card {
+  background: var(--th-elevated);
+  border: 1px solid var(--bd-primary);
+  border-radius: 12px;
+  padding: 22px;
+  margin: 16px 0;
+  transition: border-color 0.2s;
+}
+.gg101-eco-card:hover {
+  border-color: rgba(6,182,212,0.3);
+}
+.gg101-eco-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.gg101-eco-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.125rem;
+  flex-shrink: 0;
+}
+.gg101-eco-icon.initiate  { background: rgba(107,114,128,0.15); }
+.gg101-eco-icon.warden    { background: rgba(16,185,129,0.15); }
+.gg101-eco-icon.sentinel  { background: rgba(59,130,246,0.15); }
+.gg101-eco-icon.archon    { background: rgba(139,92,246,0.15); }
+.gg101-eco-icon.sovereign { background: rgba(251,191,36,0.15); }
+.gg101-eco-name {
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: var(--tx-primary);
+}
+.gg101-eco-sub {
+  font-size: 0.75rem;
+  color: var(--tx-muted);
+}
+.gg101-eco-body p {
+  font-size: 0.875rem;
+  color: var(--tx-secondary);
+  margin-bottom: 8px;
+  line-height: 1.7;
+}
+.gg101-eco-body p:last-child {
+  margin-bottom: 0;
+}
+.gg101-eco-examples {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.gg101-eco-tag {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.625rem;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.04);
+  color: var(--tx-muted);
+  border: 1px solid var(--bd-primary);
+}
+
+/* ---- Proposal Timeline ---- */
+.gg101-timeline {
+  position: relative;
+  padding-left: 32px;
+  margin: 18px 0;
+}
+.gg101-timeline::before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--gg-main), var(--gg-purple), var(--gg-green));
+  border-radius: 2px;
+}
+.gg101-timeline-item {
+  position: relative;
+  padding: 12px 0;
+}
+.gg101-timeline-item::before {
+  content: "";
+  position: absolute;
+  left: -28px;
+  top: 20px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--gg-main);
+  border: 2px solid var(--th-surface);
+}
+.gg101-timeline-item.draft::before    { background: var(--gg-blue); }
+.gg101-timeline-item.discuss::before  { background: var(--gg-purple); }
+.gg101-timeline-item.voting::before   { background: var(--gg-main); }
+.gg101-timeline-item.execute::before  { background: var(--gg-green); }
+.gg101-timeline-date {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.75rem;
+  color: var(--gg-light);
+  margin-bottom: 4px;
+}
+.gg101-timeline-text {
+  color: var(--tx-secondary);
+  font-size: 0.875rem;
+}
+.gg101-timeline-text strong {
+  color: var(--tx-primary);
+}
+
+/* ---- Voting Simulator Interactive ---- */
+.gg101-voting-sim {
+  background: var(--code-bg, rgba(0,0,0,0.3));
+  border: 1px solid var(--bd-primary);
+  border-radius: 12px;
+  padding: 24px;
+  margin: 18px 0;
+}
+.gg101-voting-sim-title {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--gg-main);
+  margin-bottom: 20px;
+  text-align: center;
+}
+.gg101-proposal-card {
+  background: var(--th-elevated);
+  border: 1px solid var(--bd-primary);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.gg101-proposal-label {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--gg-main);
+  margin-bottom: 8px;
+}
+.gg101-proposal-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--tx-primary);
+  margin-bottom: 8px;
+}
+.gg101-proposal-desc {
+  font-size: 0.875rem;
+  color: var(--tx-secondary);
+  line-height: 1.7;
+}
+.gg101-voter-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: var(--th-elevated);
+  border-radius: 10px;
+  border: 1px solid var(--bd-primary);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.gg101-voter-info-item {
+  text-align: center;
+}
+.gg101-voter-info-label {
+  font-size: 0.625rem;
+  color: var(--tx-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+}
+.gg101-voter-info-value {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--gg-light);
+}
+.gg101-vote-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.gg101-vote-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border: 1px solid var(--bd-primary);
+  background: var(--th-elevated);
+  color: var(--tx-secondary);
+}
+.gg101-vote-btn:hover:not(.voted) {
+  transform: translateY(-1px);
+}
+.gg101-vote-btn.for:hover:not(.voted) {
+  border-color: var(--gg-green);
+  color: var(--gg-green);
+  background: rgba(16,185,129,0.1);
+}
+.gg101-vote-btn.against:hover:not(.voted) {
+  border-color: var(--gg-red);
+  color: var(--gg-red);
+  background: rgba(239,68,68,0.1);
+}
+.gg101-vote-btn.abstain:hover:not(.voted) {
+  border-color: var(--gg-amber);
+  color: var(--gg-amber);
+  background: rgba(251,191,36,0.1);
+}
+.gg101-vote-btn.voted {
+  opacity: 0.5;
+  cursor: default;
+}
+.gg101-vote-btn.selected.for {
+  border-color: var(--gg-green);
+  color: #000;
+  background: var(--gg-green);
+  opacity: 1;
+}
+.gg101-vote-btn.selected.against {
+  border-color: var(--gg-red);
+  color: #000;
+  background: var(--gg-red);
+  opacity: 1;
+}
+.gg101-vote-btn.selected.abstain {
+  border-color: var(--gg-amber);
+  color: #000;
+  background: var(--gg-amber);
+  opacity: 1;
+}
+.gg101-vote-progress {
+  margin-bottom: 12px;
+}
+.gg101-vote-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--tx-muted);
+  margin-bottom: 6px;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+}
+.gg101-vote-bar {
+  height: 8px;
+  background: var(--th-elevated);
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+}
+.gg101-vote-bar-for {
+  background: var(--gg-green);
+  transition: width 0.5s ease;
+}
+.gg101-vote-bar-against {
+  background: var(--gg-red);
+  transition: width 0.5s ease;
+}
+.gg101-vote-bar-abstain {
+  background: var(--gg-amber);
+  transition: width 0.5s ease;
+}
+.gg101-vote-tally {
+  display: flex;
+  justify-content: space-between;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.75rem;
+  margin-top: 8px;
+}
+.gg101-vote-tally-for     { color: var(--gg-green); }
+.gg101-vote-tally-against { color: var(--gg-red); }
+.gg101-vote-tally-abstain { color: var(--gg-amber); }
+.gg101-quorum-bar {
+  margin-top: 16px;
+}
+.gg101-quorum-label {
+  font-size: 0.6875rem;
+  color: var(--tx-muted);
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+.gg101-quorum-track {
+  height: 6px;
+  background: var(--th-elevated);
+  border-radius: 3px;
+  position: relative;
+}
+.gg101-quorum-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+  background: var(--gg-main);
+}
+.gg101-quorum-threshold {
+  position: absolute;
+  top: -4px;
+  width: 2px;
+  height: 14px;
+  background: var(--tx-muted);
+}
+.gg101-quorum-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.6875rem;
+  color: var(--tx-muted);
+  margin-top: 4px;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+}
+.gg101-vote-result {
+  text-align: center;
+  padding: 16px;
+  border-radius: 12px;
+  margin-top: 16px;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  animation: gg101-fadeIn 0.5s ease;
+}
+.gg101-vote-result.passed {
+  background: rgba(16,185,129,0.1);
+  border: 1px solid rgba(16,185,129,0.3);
+  color: var(--gg-green);
+}
+.gg101-vote-result.failed {
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.3);
+  color: var(--gg-red);
+}
+@keyframes gg101-fadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- Quiz ---- */
+.gg101-quiz-section {
+  background: var(--th-elevated);
+  border: 1px solid var(--bd-primary);
+  border-radius: 12px;
+  padding: 22px;
+  margin-top: 24px;
+}
+.gg101-quiz-title {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--gg-main);
+  margin-bottom: 14px;
+}
+.gg101-quiz-question {
+  color: var(--tx-primary);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  margin-bottom: 14px;
+}
+.gg101-quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.gg101-quiz-option {
+  background: var(--th-surface);
+  border: 1px solid var(--bd-primary);
+  border-radius: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--tx-secondary);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.gg101-quiz-option:hover:not(.disabled) {
+  border-color: var(--gg-main);
+  color: var(--tx-primary);
+  background: var(--th-elevated);
+}
+.gg101-quiz-option .option-letter {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: rgba(6,182,212,0.1);
+  color: var(--gg-main);
+  flex-shrink: 0;
+}
+.gg101-quiz-option.correct {
+  border-color: var(--gg-green);
+  background: rgba(16,185,129,0.08);
+  color: var(--gg-green);
+}
+.gg101-quiz-option.correct .option-letter {
+  background: var(--gg-green);
+  color: #000;
+}
+.gg101-quiz-option.wrong {
+  border-color: var(--gg-red);
+  background: rgba(239,68,68,0.08);
+  color: var(--gg-red);
+  opacity: 0.6;
+}
+.gg101-quiz-option.disabled {
+  pointer-events: none;
+}
+.gg101-quiz-feedback {
+  margin-top: 14px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 0.875rem;
+}
+.gg101-quiz-feedback.correct {
+  background: rgba(16,185,129,0.1);
+  border: 1px solid rgba(16,185,129,0.2);
+  color: var(--gg-green);
+}
+.gg101-quiz-feedback.wrong {
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.2);
+  color: var(--gg-red);
+}
+
+/* ---- Complete button ---- */
+.gg101-complete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px;
+  margin-top: 22px;
+  background: rgba(6,182,212,0.1);
+  border: 1px solid rgba(6,182,212,0.3);
+  border-radius: 12px;
+  color: var(--gg-main);
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.gg101-complete-btn:hover {
+  background: rgba(6,182,212,0.2);
+  border-color: var(--gg-main);
+}
+.gg101-complete-btn.done {
+  background: var(--gg-main);
+  color: #000;
+  border-color: var(--gg-main);
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 640px) {
+  .gg101-compare-grid,
+  .gg101-three-col {
+    grid-template-columns: 1fr;
+  }
+  .gg101-stats-row {
+    grid-template-columns: 1fr;
+  }
+  .gg101-vote-buttons {
+    flex-direction: column;
+  }
+}

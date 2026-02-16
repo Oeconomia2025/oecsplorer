@@ -1,0 +1,701 @@
+/* ============================================================
+   ERC-20 Tokens 101 — Scoped under .tk101
+   Lighter pink accent theme
+   ============================================================ */
+
+/* ---- Tokens ---- */
+.tk101 {
+  --tk-main: #f472b6;
+  --tk-light: #f9a8d4;
+  --tk-dim: #ec4899;
+  --tk-glow: rgba(244,114,182,0.08);
+  --tk-blue: #3b82f6;
+  --tk-green: #10b981;
+  --tk-red: #ef4444;
+  --tk-purple: #8b5cf6;
+  --tk-orange: #f97316;
+  --tk-amber: #fbbf24;
+  --tk-cyan: #06b6d4;
+
+  font-family: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  letter-spacing: 0.01em;
+}
+
+/* ---- Progress bar ---- */
+.tk101-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+.tk101-progress-steps {
+  display: flex;
+  gap: 8px;
+}
+.tk101-progress-step {
+  flex: 1;
+  height: 4px;
+  background: var(--bd-primary);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.tk101-progress-step:hover {
+  opacity: 0.8;
+  transform: scaleY(1.5);
+}
+.tk101-progress-step.completed {
+  background: var(--tk-main);
+}
+.tk101-progress-step.active {
+  background: linear-gradient(90deg, var(--tk-main), var(--tk-cyan));
+  height: 6px;
+}
+.tk101-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--tx-muted);
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+}
+
+/* ---- Lesson accordion ---- */
+.tk101-lesson {
+  background: var(--th-surface);
+  border: 1px solid var(--bd-primary);
+  border-radius: 16px;
+  margin-bottom: 20px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+.tk101-lesson:hover {
+  border-color: rgba(244,114,182,0.3);
+}
+.tk101-lesson.active {
+  border-color: var(--tk-main);
+  box-shadow: 0 0 40px var(--tk-glow);
+}
+.tk101-lesson-header {
+  padding: 20px 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  user-select: none;
+  transition: background 0.2s ease;
+}
+.tk101-lesson-header:hover {
+  background: var(--th-elevated);
+}
+.tk101-lesson-number {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-weight: 700;
+  font-size: 1rem;
+  flex-shrink: 0;
+  background: rgba(244,114,182,0.1);
+  color: var(--tk-main);
+  border: 1px solid rgba(244,114,182,0.2);
+  transition: all 0.3s ease;
+}
+.tk101-lesson.completed .tk101-lesson-number {
+  background: var(--tk-main);
+  color: #000;
+  border-color: var(--tk-main);
+}
+.tk101-lesson-header-text {
+  flex: 1;
+}
+.tk101-lesson-title {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--tx-primary);
+  margin-bottom: 3px;
+}
+.tk101-lesson-meta {
+  font-size: 0.8125rem;
+  color: var(--tx-muted);
+  display: flex;
+  gap: 14px;
+}
+.tk101-lesson-toggle {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--tx-muted);
+  transition: transform 0.3s ease;
+  font-size: 1rem;
+}
+.tk101-lesson.active .tk101-lesson-toggle {
+  transform: rotate(180deg);
+  color: var(--tk-main);
+}
+.tk101-lesson-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s ease;
+}
+.tk101-lesson.active .tk101-lesson-content {
+  max-height: 12000px;
+}
+.tk101-lesson-body {
+  padding: 0 24px 28px;
+  border-top: 1px solid var(--bd-primary);
+  padding-top: 24px;
+}
+.tk101-lesson-body h3 {
+  font-size: 0.8125rem;
+  color: var(--tk-main);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin: 28px 0 14px;
+  font-weight: 700;
+}
+.tk101-lesson-body h3:first-child {
+  margin-top: 0;
+}
+.tk101-lesson-body p {
+  color: var(--tx-secondary);
+  font-size: 0.9375rem;
+  margin-bottom: 14px;
+  line-height: 1.8;
+}
+.tk101-lesson-body strong {
+  color: var(--tx-primary);
+  font-weight: 600;
+}
+.tk101-lesson-body code {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  background: var(--code-bg, rgba(0,0,0,0.2));
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--tk-light);
+}
+
+/* ---- Info boxes ---- */
+.tk101-info-box {
+  background: var(--th-elevated);
+  border-left: 3px solid var(--tk-main);
+  border-radius: 0 12px 12px 0;
+  padding: 18px 22px;
+  margin: 18px 0;
+}
+.tk101-info-box.blue   { border-left-color: var(--tk-blue); }
+.tk101-info-box.green  { border-left-color: var(--tk-green); }
+.tk101-info-box.purple { border-left-color: var(--tk-purple); }
+.tk101-info-box.orange { border-left-color: var(--tk-orange); }
+.tk101-info-box.amber  { border-left-color: var(--tk-amber); }
+.tk101-info-box.cyan   { border-left-color: var(--tk-cyan); }
+.tk101-info-box-label {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--tk-main);
+  margin-bottom: 8px;
+}
+.tk101-info-box.blue   .tk101-info-box-label { color: var(--tk-blue); }
+.tk101-info-box.green  .tk101-info-box-label { color: var(--tk-green); }
+.tk101-info-box.purple .tk101-info-box-label { color: var(--tk-purple); }
+.tk101-info-box.orange .tk101-info-box-label { color: var(--tk-orange); }
+.tk101-info-box.amber  .tk101-info-box-label { color: var(--tk-amber); }
+.tk101-info-box.cyan   .tk101-info-box-label { color: var(--tk-cyan); }
+.tk101-info-box p {
+  color: var(--tx-secondary);
+  font-size: 0.875rem;
+  margin-bottom: 0;
+}
+
+/* ---- Data blocks ---- */
+.tk101-data-block {
+  background: var(--code-bg, rgba(0,0,0,0.3));
+  border: 1px solid var(--bd-primary);
+  border-radius: 12px;
+  padding: 22px;
+  margin: 18px 0;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  overflow-x: auto;
+}
+.tk101-data-section-label {
+  color: var(--tk-main);
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+}
+.tk101-data-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.tk101-data-row:last-child {
+  border-bottom: none;
+}
+.tk101-data-label {
+  color: var(--tx-muted);
+}
+.tk101-data-value {
+  color: var(--tk-light);
+  text-align: right;
+}
+.tk101-data-value.green  { color: var(--tk-green); }
+.tk101-data-value.blue   { color: var(--tk-blue); }
+.tk101-data-value.orange { color: var(--tk-orange); }
+.tk101-data-value.purple { color: var(--tk-purple); }
+.tk101-data-value.cyan   { color: var(--tk-cyan); }
+.tk101-data-value.red    { color: var(--tk-red); }
+.tk101-data-value.amber  { color: var(--tk-amber); }
+
+/* ---- Compare grid ---- */
+.tk101-compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 18px 0;
+}
+.tk101-compare-card {
+  background: var(--th-elevated);
+  border-radius: 12px;
+  padding: 18px;
+  border: 1px solid var(--bd-primary);
+}
+.tk101-compare-card h4 {
+  font-size: 0.875rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--tx-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tk101-compare-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.tk101-compare-card li {
+  color: var(--tx-secondary);
+  font-size: 0.8125rem;
+  padding: 4px 0 4px 16px;
+  position: relative;
+  line-height: 1.6;
+}
+.tk101-compare-card li::before {
+  content: "\2192";
+  position: absolute;
+  left: 0;
+  color: var(--tx-muted);
+}
+
+/* ---- Stats row ---- */
+.tk101-stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 18px 0;
+}
+.tk101-stat-card {
+  background: var(--th-elevated);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  border: 1px solid var(--bd-primary);
+}
+.tk101-stat-value {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--tk-light);
+  margin-bottom: 4px;
+}
+.tk101-stat-label {
+  font-size: 0.75rem;
+  color: var(--tx-muted);
+}
+
+/* ---- Three-column cards ---- */
+.tk101-three-col {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 18px 0;
+}
+.tk101-col-card {
+  background: var(--th-elevated);
+  border-radius: 12px;
+  padding: 18px;
+  border: 1px solid var(--bd-primary);
+}
+.tk101-col-card h4 {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--tk-main);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+.tk101-col-card p {
+  font-size: 0.8125rem;
+  color: var(--tx-secondary);
+  margin-bottom: 0;
+  line-height: 1.6;
+}
+
+/* ---- Contract code visual ---- */
+.tk101-contract-visual {
+  background: var(--code-bg, rgba(0,0,0,0.3));
+  border: 1px solid var(--bd-primary);
+  border-radius: 12px;
+  padding: 22px;
+  margin: 18px 0;
+  overflow-x: auto;
+}
+.tk101-contract-code {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.75rem;
+  line-height: 1.8;
+  color: var(--tx-secondary);
+  white-space: pre;
+}
+.tk101-contract-code .keyword { color: var(--tk-main); }
+.tk101-contract-code .type    { color: var(--tk-cyan); }
+.tk101-contract-code .func    { color: var(--tk-amber); }
+.tk101-contract-code .comment { color: var(--tx-muted); font-style: italic; }
+.tk101-contract-code .str     { color: var(--tk-green); }
+.tk101-contract-code .num     { color: var(--tk-orange); }
+
+/* ---- Token transfer visualizer ---- */
+.tk101-transfer-viz {
+  background: var(--code-bg, rgba(0,0,0,0.3));
+  border: 1px solid var(--bd-primary);
+  border-radius: 12px;
+  padding: 24px;
+  margin: 18px 0;
+}
+.tk101-transfer-wallets {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+.tk101-wallet-box {
+  background: var(--th-elevated);
+  border: 1px solid var(--bd-primary);
+  border-radius: 12px;
+  padding: 16px 20px;
+  text-align: center;
+  min-width: 160px;
+  transition: all 0.3s ease;
+}
+.tk101-wallet-box.sender {
+  border-color: var(--tk-main);
+}
+.tk101-wallet-box.receiver {
+  border-color: var(--tk-green);
+}
+.tk101-wallet-box.dex {
+  border-color: var(--tk-purple);
+}
+.tk101-wallet-label {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--tx-muted);
+  margin-bottom: 6px;
+}
+.tk101-wallet-addr {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.6875rem;
+  color: var(--tk-light);
+  margin-bottom: 8px;
+}
+.tk101-wallet-balance {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--tx-primary);
+}
+.tk101-wallet-balance.decreased {
+  color: var(--tk-red);
+}
+.tk101-wallet-balance.increased {
+  color: var(--tk-green);
+}
+.tk101-transfer-arrow {
+  font-size: 1.5rem;
+  color: var(--tk-main);
+  flex-shrink: 0;
+}
+.tk101-transfer-controls {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.tk101-transfer-input-group {
+  flex: 1;
+  min-width: 100px;
+}
+.tk101-transfer-input-label {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--tx-muted);
+  margin-bottom: 6px;
+}
+.tk101-transfer-input {
+  width: 100%;
+  background: var(--th-elevated);
+  border: 1px solid var(--bd-primary);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--tx-primary);
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+.tk101-transfer-input:focus {
+  border-color: var(--tk-main);
+}
+.tk101-transfer-btn {
+  padding: 10px 20px;
+  background: rgba(244,114,182,0.15);
+  border: 1px solid var(--tk-main);
+  border-radius: 8px;
+  color: var(--tk-main);
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+.tk101-transfer-btn:hover {
+  background: rgba(244,114,182,0.25);
+}
+.tk101-transfer-btn.approve {
+  background: rgba(139,92,246,0.15);
+  border-color: var(--tk-purple);
+  color: var(--tk-purple);
+}
+.tk101-transfer-btn.approve:hover {
+  background: rgba(139,92,246,0.25);
+}
+.tk101-transfer-log {
+  background: var(--th-surface);
+  border: 1px solid var(--bd-primary);
+  border-radius: 10px;
+  padding: 14px;
+  margin-top: 14px;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.6875rem;
+  line-height: 1.8;
+  color: var(--tx-muted);
+  max-height: 200px;
+  overflow-y: auto;
+}
+.tk101-transfer-log .event {
+  color: var(--tk-amber);
+}
+.tk101-transfer-log .success {
+  color: var(--tk-green);
+}
+.tk101-transfer-log .info {
+  color: var(--tk-light);
+}
+.tk101-transfer-mode-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.tk101-transfer-mode-tab {
+  padding: 8px 16px;
+  background: var(--th-elevated);
+  border: 1px solid var(--bd-primary);
+  border-radius: 8px;
+  color: var(--tx-muted);
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.tk101-transfer-mode-tab:hover {
+  border-color: var(--tk-main);
+  color: var(--tx-primary);
+}
+.tk101-transfer-mode-tab.active {
+  background: rgba(244,114,182,0.15);
+  border-color: var(--tk-main);
+  color: var(--tk-main);
+}
+
+/* ---- Quiz ---- */
+.tk101-quiz-section {
+  background: var(--th-elevated);
+  border: 1px solid var(--bd-primary);
+  border-radius: 12px;
+  padding: 22px;
+  margin-top: 24px;
+}
+.tk101-quiz-title {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--tk-main);
+  margin-bottom: 14px;
+}
+.tk101-quiz-question {
+  color: var(--tx-primary);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  margin-bottom: 14px;
+}
+.tk101-quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.tk101-quiz-option {
+  background: var(--th-surface);
+  border: 1px solid var(--bd-primary);
+  border-radius: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--tx-secondary);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.tk101-quiz-option:hover:not(.disabled) {
+  border-color: var(--tk-main);
+  color: var(--tx-primary);
+  background: var(--th-elevated);
+}
+.tk101-quiz-option .option-letter {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: rgba(244,114,182,0.1);
+  color: var(--tk-main);
+  flex-shrink: 0;
+}
+.tk101-quiz-option.correct {
+  border-color: var(--tk-green);
+  background: rgba(16,185,129,0.08);
+  color: var(--tk-green);
+}
+.tk101-quiz-option.correct .option-letter {
+  background: var(--tk-green);
+  color: #000;
+}
+.tk101-quiz-option.wrong {
+  border-color: var(--tk-red);
+  background: rgba(239,68,68,0.08);
+  color: var(--tk-red);
+  opacity: 0.6;
+}
+.tk101-quiz-option.disabled {
+  pointer-events: none;
+}
+.tk101-quiz-feedback {
+  margin-top: 14px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 0.875rem;
+}
+.tk101-quiz-feedback.correct {
+  background: rgba(16,185,129,0.1);
+  border: 1px solid rgba(16,185,129,0.2);
+  color: var(--tk-green);
+}
+.tk101-quiz-feedback.wrong {
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.2);
+  color: var(--tk-red);
+}
+
+/* ---- Complete button ---- */
+.tk101-complete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px;
+  margin-top: 22px;
+  background: rgba(244,114,182,0.1);
+  border: 1px solid rgba(244,114,182,0.3);
+  border-radius: 12px;
+  color: var(--tk-main);
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.tk101-complete-btn:hover {
+  background: rgba(244,114,182,0.2);
+  border-color: var(--tk-main);
+}
+.tk101-complete-btn.done {
+  background: var(--tk-main);
+  color: #000;
+  border-color: var(--tk-main);
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 640px) {
+  .tk101-compare-grid,
+  .tk101-three-col {
+    grid-template-columns: 1fr;
+  }
+  .tk101-stats-row {
+    grid-template-columns: 1fr;
+  }
+  .tk101-transfer-wallets {
+    flex-direction: column;
+  }
+  .tk101-transfer-controls {
+    flex-direction: column;
+  }
+  .tk101-transfer-mode-tabs {
+    flex-direction: column;
+  }
+}

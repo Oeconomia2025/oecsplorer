@@ -1,0 +1,604 @@
+/* ============================================================
+   What is Web3 — Scoped under .w3101
+   Mint/emerald accent theme
+   ============================================================ */
+
+/* ---- Tokens ---- */
+.w3101 {
+  --w3-main: #34d399;
+  --w3-light: #6ee7b7;
+  --w3-dim: #059669;
+  --w3-glow: rgba(52,211,153,0.08);
+  --w3-blue: #3b82f6;
+  --w3-green: #10b981;
+  --w3-red: #ef4444;
+  --w3-purple: #8b5cf6;
+  --w3-orange: #f97316;
+  --w3-amber: #fbbf24;
+  --w3-cyan: #06b6d4;
+
+  font-family: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  letter-spacing: 0.01em;
+}
+
+/* ---- Progress bar ---- */
+.w3101-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+.w3101-progress-steps {
+  display: flex;
+  gap: 8px;
+}
+.w3101-progress-step {
+  flex: 1;
+  height: 4px;
+  background: var(--bd-primary);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.w3101-progress-step:hover {
+  opacity: 0.8;
+  transform: scaleY(1.5);
+}
+.w3101-progress-step.completed {
+  background: var(--w3-main);
+}
+.w3101-progress-step.active {
+  background: linear-gradient(90deg, var(--w3-main), var(--w3-cyan));
+  height: 6px;
+}
+.w3101-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--tx-muted);
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+}
+
+/* ---- Lesson accordion ---- */
+.w3101-lesson {
+  background: var(--th-surface);
+  border: 1px solid var(--bd-primary);
+  border-radius: 16px;
+  margin-bottom: 20px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+.w3101-lesson:hover {
+  border-color: rgba(52,211,153,0.3);
+}
+.w3101-lesson.active {
+  border-color: var(--w3-main);
+  box-shadow: 0 0 40px var(--w3-glow);
+}
+.w3101-lesson-header {
+  padding: 20px 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  user-select: none;
+  transition: background 0.2s ease;
+}
+.w3101-lesson-header:hover {
+  background: var(--th-elevated);
+}
+.w3101-lesson-number {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-weight: 700;
+  font-size: 1rem;
+  flex-shrink: 0;
+  background: rgba(52,211,153,0.1);
+  color: var(--w3-main);
+  border: 1px solid rgba(52,211,153,0.2);
+  transition: all 0.3s ease;
+}
+.w3101-lesson.completed .w3101-lesson-number {
+  background: var(--w3-main);
+  color: #000;
+  border-color: var(--w3-main);
+}
+.w3101-lesson-header-text {
+  flex: 1;
+}
+.w3101-lesson-title {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--tx-primary);
+  margin-bottom: 3px;
+}
+.w3101-lesson-meta {
+  font-size: 0.8125rem;
+  color: var(--tx-muted);
+  display: flex;
+  gap: 14px;
+}
+.w3101-lesson-toggle {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--tx-muted);
+  transition: transform 0.3s ease;
+  font-size: 1rem;
+}
+.w3101-lesson.active .w3101-lesson-toggle {
+  transform: rotate(180deg);
+  color: var(--w3-main);
+}
+.w3101-lesson-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s ease;
+}
+.w3101-lesson.active .w3101-lesson-content {
+  max-height: 12000px;
+}
+.w3101-lesson-body {
+  padding: 0 24px 28px;
+  border-top: 1px solid var(--bd-primary);
+  padding-top: 24px;
+}
+.w3101-lesson-body h3 {
+  font-size: 0.8125rem;
+  color: var(--w3-main);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin: 28px 0 14px;
+  font-weight: 700;
+}
+.w3101-lesson-body h3:first-child {
+  margin-top: 0;
+}
+.w3101-lesson-body p {
+  color: var(--tx-secondary);
+  font-size: 0.9375rem;
+  margin-bottom: 14px;
+  line-height: 1.8;
+}
+.w3101-lesson-body strong {
+  color: var(--tx-primary);
+  font-weight: 600;
+}
+.w3101-lesson-body code {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  background: var(--code-bg, rgba(0,0,0,0.2));
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--w3-light);
+}
+
+/* ---- Info boxes ---- */
+.w3101-info-box {
+  background: var(--th-elevated);
+  border-left: 3px solid var(--w3-main);
+  border-radius: 0 12px 12px 0;
+  padding: 18px 22px;
+  margin: 18px 0;
+}
+.w3101-info-box.blue   { border-left-color: var(--w3-blue); }
+.w3101-info-box.green  { border-left-color: var(--w3-green); }
+.w3101-info-box.purple { border-left-color: var(--w3-purple); }
+.w3101-info-box.orange { border-left-color: var(--w3-orange); }
+.w3101-info-box.amber  { border-left-color: var(--w3-amber); }
+.w3101-info-box.cyan   { border-left-color: var(--w3-cyan); }
+.w3101-info-box-label {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--w3-main);
+  margin-bottom: 8px;
+}
+.w3101-info-box.blue   .w3101-info-box-label { color: var(--w3-blue); }
+.w3101-info-box.green  .w3101-info-box-label { color: var(--w3-green); }
+.w3101-info-box.purple .w3101-info-box-label { color: var(--w3-purple); }
+.w3101-info-box.orange .w3101-info-box-label { color: var(--w3-orange); }
+.w3101-info-box.amber  .w3101-info-box-label { color: var(--w3-amber); }
+.w3101-info-box.cyan   .w3101-info-box-label { color: var(--w3-cyan); }
+.w3101-info-box p {
+  color: var(--tx-secondary);
+  font-size: 0.875rem;
+  margin-bottom: 0;
+}
+
+/* ---- Data blocks ---- */
+.w3101-data-block {
+  background: var(--code-bg, rgba(0,0,0,0.3));
+  border: 1px solid var(--bd-primary);
+  border-radius: 12px;
+  padding: 22px;
+  margin: 18px 0;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  overflow-x: auto;
+}
+.w3101-data-section-label {
+  color: var(--w3-main);
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+}
+.w3101-data-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.w3101-data-row:last-child {
+  border-bottom: none;
+}
+.w3101-data-label {
+  color: var(--tx-muted);
+}
+.w3101-data-value {
+  color: var(--w3-light);
+  text-align: right;
+}
+.w3101-data-value.green  { color: var(--w3-green); }
+.w3101-data-value.blue   { color: var(--w3-blue); }
+.w3101-data-value.orange { color: var(--w3-orange); }
+.w3101-data-value.purple { color: var(--w3-purple); }
+.w3101-data-value.cyan   { color: var(--w3-cyan); }
+.w3101-data-value.red    { color: var(--w3-red); }
+.w3101-data-value.amber  { color: var(--w3-amber); }
+
+/* ---- Compare grid ---- */
+.w3101-compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 18px 0;
+}
+.w3101-compare-card {
+  background: var(--th-elevated);
+  border-radius: 12px;
+  padding: 18px;
+  border: 1px solid var(--bd-primary);
+}
+.w3101-compare-card h4 {
+  font-size: 0.875rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--tx-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.w3101-compare-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.w3101-compare-card li {
+  color: var(--tx-secondary);
+  font-size: 0.8125rem;
+  padding: 4px 0 4px 16px;
+  position: relative;
+  line-height: 1.6;
+}
+.w3101-compare-card li::before {
+  content: "\2192";
+  position: absolute;
+  left: 0;
+  color: var(--tx-muted);
+}
+
+/* ---- Stats row ---- */
+.w3101-stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 18px 0;
+}
+.w3101-stat-card {
+  background: var(--th-elevated);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  border: 1px solid var(--bd-primary);
+}
+.w3101-stat-value {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--w3-light);
+  margin-bottom: 4px;
+}
+.w3101-stat-label {
+  font-size: 0.75rem;
+  color: var(--tx-muted);
+}
+
+/* ---- Three-column cards ---- */
+.w3101-three-col {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 18px 0;
+}
+.w3101-col-card {
+  background: var(--th-elevated);
+  border-radius: 12px;
+  padding: 18px;
+  border: 1px solid var(--bd-primary);
+}
+.w3101-col-card h4 {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--w3-main);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+.w3101-col-card p {
+  font-size: 0.8125rem;
+  color: var(--tx-secondary);
+  margin-bottom: 0;
+  line-height: 1.6;
+}
+
+/* ---- Web Evolution Timeline (interactive) ---- */
+.w3101-timeline {
+  position: relative;
+  margin: 18px 0;
+}
+.w3101-timeline-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.w3101-timeline-tab {
+  flex: 1;
+  padding: 14px 16px;
+  background: var(--th-elevated);
+  border: 1px solid var(--bd-primary);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+.w3101-timeline-tab:hover {
+  border-color: rgba(52,211,153,0.4);
+}
+.w3101-timeline-tab.active {
+  border-color: var(--w3-main);
+  background: rgba(52,211,153,0.08);
+  box-shadow: 0 0 20px rgba(52,211,153,0.1);
+}
+.w3101-timeline-tab-era {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--tx-muted);
+  margin-bottom: 4px;
+}
+.w3101-timeline-tab.active .w3101-timeline-tab-era {
+  color: var(--w3-main);
+}
+.w3101-timeline-tab-label {
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: var(--tx-primary);
+}
+.w3101-timeline-tab-years {
+  font-size: 0.75rem;
+  color: var(--tx-muted);
+  margin-top: 2px;
+}
+.w3101-timeline-detail {
+  background: var(--code-bg, rgba(0,0,0,0.3));
+  border: 1px solid var(--bd-primary);
+  border-radius: 12px;
+  padding: 22px;
+  animation: w3101-fadeIn 0.3s ease;
+}
+@keyframes w3101-fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.w3101-timeline-detail h4 {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--w3-main);
+  margin-bottom: 10px;
+}
+.w3101-timeline-detail p {
+  color: var(--tx-secondary);
+  font-size: 0.875rem;
+  margin-bottom: 10px;
+  line-height: 1.7;
+}
+.w3101-timeline-detail p:last-child {
+  margin-bottom: 0;
+}
+.w3101-timeline-examples {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.w3101-timeline-tag {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.625rem;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.04);
+  color: var(--tx-muted);
+  border: 1px solid var(--bd-primary);
+}
+.w3101-timeline-chars {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+.w3101-timeline-char {
+  font-size: 0.8125rem;
+  color: var(--tx-secondary);
+  padding: 6px 10px;
+  background: var(--th-elevated);
+  border-radius: 8px;
+  border: 1px solid var(--bd-primary);
+}
+
+/* ---- Quiz ---- */
+.w3101-quiz-section {
+  background: var(--th-elevated);
+  border: 1px solid var(--bd-primary);
+  border-radius: 12px;
+  padding: 22px;
+  margin-top: 24px;
+}
+.w3101-quiz-title {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--w3-main);
+  margin-bottom: 14px;
+}
+.w3101-quiz-question {
+  color: var(--tx-primary);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  margin-bottom: 14px;
+}
+.w3101-quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.w3101-quiz-option {
+  background: var(--th-surface);
+  border: 1px solid var(--bd-primary);
+  border-radius: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--tx-secondary);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.w3101-quiz-option:hover:not(.disabled) {
+  border-color: var(--w3-main);
+  color: var(--tx-primary);
+  background: var(--th-elevated);
+}
+.w3101-quiz-option .option-letter {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: rgba(52,211,153,0.1);
+  color: var(--w3-main);
+  flex-shrink: 0;
+}
+.w3101-quiz-option.correct {
+  border-color: var(--w3-green);
+  background: rgba(16,185,129,0.08);
+  color: var(--w3-green);
+}
+.w3101-quiz-option.correct .option-letter {
+  background: var(--w3-green);
+  color: #000;
+}
+.w3101-quiz-option.wrong {
+  border-color: var(--w3-red);
+  background: rgba(239,68,68,0.08);
+  color: var(--w3-red);
+  opacity: 0.6;
+}
+.w3101-quiz-option.disabled {
+  pointer-events: none;
+}
+.w3101-quiz-feedback {
+  margin-top: 14px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 0.875rem;
+}
+.w3101-quiz-feedback.correct {
+  background: rgba(16,185,129,0.1);
+  border: 1px solid rgba(16,185,129,0.2);
+  color: var(--w3-green);
+}
+.w3101-quiz-feedback.wrong {
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.2);
+  color: var(--w3-red);
+}
+
+/* ---- Complete button ---- */
+.w3101-complete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px;
+  margin-top: 22px;
+  background: rgba(52,211,153,0.1);
+  border: 1px solid rgba(52,211,153,0.3);
+  border-radius: 12px;
+  color: var(--w3-main);
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.w3101-complete-btn:hover {
+  background: rgba(52,211,153,0.2);
+  border-color: var(--w3-main);
+}
+.w3101-complete-btn.done {
+  background: var(--w3-main);
+  color: #000;
+  border-color: var(--w3-main);
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 640px) {
+  .w3101-compare-grid,
+  .w3101-three-col {
+    grid-template-columns: 1fr;
+  }
+  .w3101-stats-row {
+    grid-template-columns: 1fr;
+  }
+  .w3101-timeline-tabs {
+    flex-direction: column;
+  }
+  .w3101-timeline-chars {
+    grid-template-columns: 1fr;
+  }
+}

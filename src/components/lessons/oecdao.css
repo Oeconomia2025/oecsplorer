@@ -1,0 +1,703 @@
+/* ============================================================
+   Oeconomia DAO: The Big Picture — Scoped under .od101
+   Magenta accent theme
+   ============================================================ */
+
+/* ---- Tokens ---- */
+.od101 {
+  --od-main: #da1cfe;
+  --od-light: #e879f9;
+  --od-dim: #a21caf;
+  --od-glow: rgba(218,28,254,0.08);
+  --od-blue: #3b82f6;
+  --od-green: #10b981;
+  --od-red: #ef4444;
+  --od-purple: #8b5cf6;
+  --od-orange: #f97316;
+  --od-amber: #fbbf24;
+  --od-cyan: #06b6d4;
+
+  font-family: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  letter-spacing: 0.01em;
+}
+
+/* ---- Progress bar ---- */
+.od101-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+.od101-progress-steps {
+  display: flex;
+  gap: 8px;
+}
+.od101-progress-step {
+  flex: 1;
+  height: 4px;
+  background: var(--bd-primary);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.od101-progress-step:hover {
+  opacity: 0.8;
+  transform: scaleY(1.5);
+}
+.od101-progress-step.completed {
+  background: var(--od-main);
+}
+.od101-progress-step.active {
+  background: linear-gradient(90deg, var(--od-main), var(--od-cyan));
+  height: 6px;
+}
+.od101-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--tx-muted);
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+}
+
+/* ---- Lesson accordion ---- */
+.od101-lesson {
+  background: var(--th-surface);
+  border: 1px solid var(--bd-primary);
+  border-radius: 16px;
+  margin-bottom: 20px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+.od101-lesson:hover {
+  border-color: rgba(218,28,254,0.3);
+}
+.od101-lesson.active {
+  border-color: var(--od-main);
+  box-shadow: 0 0 40px var(--od-glow);
+}
+.od101-lesson-header {
+  padding: 20px 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  user-select: none;
+  transition: background 0.2s ease;
+}
+.od101-lesson-header:hover {
+  background: var(--th-elevated);
+}
+.od101-lesson-number {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-weight: 700;
+  font-size: 1rem;
+  flex-shrink: 0;
+  background: rgba(218,28,254,0.1);
+  color: var(--od-main);
+  border: 1px solid rgba(218,28,254,0.2);
+  transition: all 0.3s ease;
+}
+.od101-lesson.completed .od101-lesson-number {
+  background: var(--od-main);
+  color: #000;
+  border-color: var(--od-main);
+}
+.od101-lesson-header-text {
+  flex: 1;
+}
+.od101-lesson-title {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--tx-primary);
+  margin-bottom: 3px;
+}
+.od101-lesson-meta {
+  font-size: 0.8125rem;
+  color: var(--tx-muted);
+  display: flex;
+  gap: 14px;
+}
+.od101-lesson-toggle {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--tx-muted);
+  transition: transform 0.3s ease;
+  font-size: 1rem;
+}
+.od101-lesson.active .od101-lesson-toggle {
+  transform: rotate(180deg);
+  color: var(--od-main);
+}
+.od101-lesson-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s ease;
+}
+.od101-lesson.active .od101-lesson-content {
+  max-height: 12000px;
+}
+.od101-lesson-body {
+  padding: 0 24px 28px;
+  border-top: 1px solid var(--bd-primary);
+  padding-top: 24px;
+}
+.od101-lesson-body h3 {
+  font-size: 0.8125rem;
+  color: var(--od-main);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin: 28px 0 14px;
+  font-weight: 700;
+}
+.od101-lesson-body h3:first-child {
+  margin-top: 0;
+}
+.od101-lesson-body p {
+  color: var(--tx-secondary);
+  font-size: 0.9375rem;
+  margin-bottom: 14px;
+  line-height: 1.8;
+}
+.od101-lesson-body strong {
+  color: var(--tx-primary);
+  font-weight: 600;
+}
+.od101-lesson-body code {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  background: var(--code-bg, rgba(0,0,0,0.2));
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--od-light);
+}
+
+/* ---- Info boxes ---- */
+.od101-info-box {
+  background: var(--th-elevated);
+  border-left: 3px solid var(--od-main);
+  border-radius: 0 12px 12px 0;
+  padding: 18px 22px;
+  margin: 18px 0;
+}
+.od101-info-box.blue   { border-left-color: var(--od-blue); }
+.od101-info-box.green  { border-left-color: var(--od-green); }
+.od101-info-box.purple { border-left-color: var(--od-purple); }
+.od101-info-box.orange { border-left-color: var(--od-orange); }
+.od101-info-box.amber  { border-left-color: var(--od-amber); }
+.od101-info-box.cyan   { border-left-color: var(--od-cyan); }
+.od101-info-box-label {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--od-main);
+  margin-bottom: 8px;
+}
+.od101-info-box.blue   .od101-info-box-label { color: var(--od-blue); }
+.od101-info-box.green  .od101-info-box-label { color: var(--od-green); }
+.od101-info-box.purple .od101-info-box-label { color: var(--od-purple); }
+.od101-info-box.orange .od101-info-box-label { color: var(--od-orange); }
+.od101-info-box.amber  .od101-info-box-label { color: var(--od-amber); }
+.od101-info-box.cyan   .od101-info-box-label { color: var(--od-cyan); }
+.od101-info-box p {
+  color: var(--tx-secondary);
+  font-size: 0.875rem;
+  margin-bottom: 0;
+}
+
+/* ---- Data blocks ---- */
+.od101-data-block {
+  background: var(--code-bg, rgba(0,0,0,0.3));
+  border: 1px solid var(--bd-primary);
+  border-radius: 12px;
+  padding: 22px;
+  margin: 18px 0;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  overflow-x: auto;
+}
+.od101-data-section-label {
+  color: var(--od-main);
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+}
+.od101-data-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.od101-data-row:last-child {
+  border-bottom: none;
+}
+.od101-data-label {
+  color: var(--tx-muted);
+}
+.od101-data-value {
+  color: var(--od-light);
+  text-align: right;
+}
+.od101-data-value.green  { color: var(--od-green); }
+.od101-data-value.blue   { color: var(--od-blue); }
+.od101-data-value.orange { color: var(--od-orange); }
+.od101-data-value.purple { color: var(--od-purple); }
+.od101-data-value.cyan   { color: var(--od-cyan); }
+.od101-data-value.red    { color: var(--od-red); }
+.od101-data-value.amber  { color: var(--od-amber); }
+
+/* ---- Compare grid ---- */
+.od101-compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 18px 0;
+}
+.od101-compare-card {
+  background: var(--th-elevated);
+  border-radius: 12px;
+  padding: 18px;
+  border: 1px solid var(--bd-primary);
+}
+.od101-compare-card h4 {
+  font-size: 0.875rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--tx-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.od101-compare-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.od101-compare-card li {
+  color: var(--tx-secondary);
+  font-size: 0.8125rem;
+  padding: 4px 0 4px 16px;
+  position: relative;
+  line-height: 1.6;
+}
+.od101-compare-card li::before {
+  content: "\2192";
+  position: absolute;
+  left: 0;
+  color: var(--tx-muted);
+}
+
+/* ---- Stats row ---- */
+.od101-stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 18px 0;
+}
+.od101-stat-card {
+  background: var(--th-elevated);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  border: 1px solid var(--bd-primary);
+}
+.od101-stat-value {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--od-light);
+  margin-bottom: 4px;
+}
+.od101-stat-label {
+  font-size: 0.75rem;
+  color: var(--tx-muted);
+}
+
+/* ---- Three-column cards ---- */
+.od101-three-col {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 18px 0;
+}
+.od101-col-card {
+  background: var(--th-elevated);
+  border-radius: 12px;
+  padding: 18px;
+  border: 1px solid var(--bd-primary);
+}
+.od101-col-card h4 {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--od-main);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+.od101-col-card p {
+  font-size: 0.8125rem;
+  color: var(--tx-secondary);
+  margin-bottom: 0;
+  line-height: 1.6;
+}
+
+/* ---- Ecosystem cards ---- */
+.od101-eco-card {
+  background: var(--th-elevated);
+  border: 1px solid var(--bd-primary);
+  border-radius: 12px;
+  padding: 22px;
+  margin: 16px 0;
+  transition: border-color 0.2s;
+}
+.od101-eco-card:hover {
+  border-color: rgba(218,28,254,0.3);
+}
+.od101-eco-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.od101-eco-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.125rem;
+  flex-shrink: 0;
+}
+.od101-eco-icon.defi    { background: rgba(16,185,129,0.15); }
+.od101-eco-icon.nft     { background: rgba(249,115,22,0.15); }
+.od101-eco-icon.dao     { background: rgba(6,182,212,0.15); }
+.od101-eco-icon.lending { background: rgba(59,130,246,0.15); }
+.od101-eco-icon.dev     { background: rgba(139,92,246,0.15); }
+.od101-eco-icon.gov     { background: rgba(218,28,254,0.15); }
+.od101-eco-name {
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: var(--tx-primary);
+}
+.od101-eco-sub {
+  font-size: 0.75rem;
+  color: var(--tx-muted);
+}
+.od101-eco-body p {
+  font-size: 0.875rem;
+  color: var(--tx-secondary);
+  margin-bottom: 8px;
+  line-height: 1.7;
+}
+.od101-eco-body p:last-child {
+  margin-bottom: 0;
+}
+.od101-eco-examples {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.od101-eco-tag {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.625rem;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.04);
+  color: var(--tx-muted);
+  border: 1px solid var(--bd-primary);
+}
+
+/* ---- Ecosystem Map Interactive ---- */
+.od101-ecosystem-map {
+  background: var(--code-bg, rgba(0,0,0,0.3));
+  border: 1px solid var(--bd-primary);
+  border-radius: 12px;
+  padding: 24px;
+  margin: 18px 0;
+}
+.od101-map-title {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--od-main);
+  margin-bottom: 20px;
+  text-align: center;
+}
+.od101-map-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+.od101-map-center {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(218,28,254,0.15);
+  border: 2px solid var(--od-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--od-main);
+  box-shadow: 0 0 30px rgba(218,28,254,0.2);
+  flex-shrink: 0;
+}
+.od101-map-nodes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+.od101-map-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--bd-primary);
+  background: var(--th-elevated);
+  min-width: 100px;
+}
+.od101-map-node:hover {
+  border-color: var(--od-main);
+  transform: translateY(-2px);
+}
+.od101-map-node.selected {
+  border-color: var(--od-main);
+  background: rgba(218,28,254,0.08);
+  box-shadow: 0 0 20px rgba(218,28,254,0.15);
+}
+.od101-map-node-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+.od101-map-node-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--tx-primary);
+  text-align: center;
+}
+.od101-map-connector {
+  font-size: 0.6875rem;
+  color: var(--tx-muted);
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  letter-spacing: 2px;
+}
+.od101-map-detail {
+  background: var(--th-elevated);
+  border: 1px solid var(--od-main);
+  border-radius: 12px;
+  padding: 18px 22px;
+  margin-top: 12px;
+  width: 100%;
+  animation: od101-fadeIn 0.3s ease;
+}
+.od101-map-detail h4 {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--tx-primary);
+  margin-bottom: 4px;
+}
+.od101-map-detail .od101-map-detail-token {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.75rem;
+  color: var(--od-main);
+  margin-bottom: 10px;
+}
+.od101-map-detail p {
+  font-size: 0.875rem;
+  color: var(--tx-secondary);
+  margin-bottom: 8px;
+  line-height: 1.7;
+}
+.od101-map-detail ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.od101-map-detail li {
+  color: var(--tx-secondary);
+  font-size: 0.8125rem;
+  padding: 3px 0 3px 16px;
+  position: relative;
+  line-height: 1.6;
+}
+.od101-map-detail li::before {
+  content: "\2192";
+  position: absolute;
+  left: 0;
+  color: var(--od-main);
+}
+@keyframes od101-fadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- Quiz ---- */
+.od101-quiz-section {
+  background: var(--th-elevated);
+  border: 1px solid var(--bd-primary);
+  border-radius: 12px;
+  padding: 22px;
+  margin-top: 24px;
+}
+.od101-quiz-title {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--od-main);
+  margin-bottom: 14px;
+}
+.od101-quiz-question {
+  color: var(--tx-primary);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  margin-bottom: 14px;
+}
+.od101-quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.od101-quiz-option {
+  background: var(--th-surface);
+  border: 1px solid var(--bd-primary);
+  border-radius: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--tx-secondary);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.od101-quiz-option:hover:not(.disabled) {
+  border-color: var(--od-main);
+  color: var(--tx-primary);
+  background: var(--th-elevated);
+}
+.od101-quiz-option .option-letter {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: rgba(218,28,254,0.1);
+  color: var(--od-main);
+  flex-shrink: 0;
+}
+.od101-quiz-option.correct {
+  border-color: var(--od-green);
+  background: rgba(16,185,129,0.08);
+  color: var(--od-green);
+}
+.od101-quiz-option.correct .option-letter {
+  background: var(--od-green);
+  color: #000;
+}
+.od101-quiz-option.wrong {
+  border-color: var(--od-red);
+  background: rgba(239,68,68,0.08);
+  color: var(--od-red);
+  opacity: 0.6;
+}
+.od101-quiz-option.disabled {
+  pointer-events: none;
+}
+.od101-quiz-feedback {
+  margin-top: 14px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 0.875rem;
+}
+.od101-quiz-feedback.correct {
+  background: rgba(16,185,129,0.1);
+  border: 1px solid rgba(16,185,129,0.2);
+  color: var(--od-green);
+}
+.od101-quiz-feedback.wrong {
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.2);
+  color: var(--od-red);
+}
+
+/* ---- Complete button ---- */
+.od101-complete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px;
+  margin-top: 22px;
+  background: rgba(218,28,254,0.1);
+  border: 1px solid rgba(218,28,254,0.3);
+  border-radius: 12px;
+  color: var(--od-main);
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.od101-complete-btn:hover {
+  background: rgba(218,28,254,0.2);
+  border-color: var(--od-main);
+}
+.od101-complete-btn.done {
+  background: var(--od-main);
+  color: #000;
+  border-color: var(--od-main);
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 640px) {
+  .od101-compare-grid,
+  .od101-three-col {
+    grid-template-columns: 1fr;
+  }
+  .od101-stats-row {
+    grid-template-columns: 1fr;
+  }
+  .od101-map-nodes {
+    flex-direction: column;
+    align-items: center;
+  }
+}

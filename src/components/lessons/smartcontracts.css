@@ -1,0 +1,616 @@
+/* ============================================================
+   Smart Contracts 101 — Scoped under .sc101
+   Pink accent theme
+   ============================================================ */
+
+/* ---- Tokens ---- */
+.sc101 {
+  --sc-main: #ec4899;
+  --sc-light: #f472b6;
+  --sc-dim: #db2777;
+  --sc-glow: rgba(236,72,153,0.08);
+  --sc-blue: #3b82f6;
+  --sc-green: #10b981;
+  --sc-red: #ef4444;
+  --sc-purple: #8b5cf6;
+  --sc-orange: #f97316;
+  --sc-amber: #fbbf24;
+  --sc-cyan: #06b6d4;
+
+  font-family: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  letter-spacing: 0.01em;
+}
+
+/* ---- Progress bar ---- */
+.sc101-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+.sc101-progress-steps {
+  display: flex;
+  gap: 8px;
+}
+.sc101-progress-step {
+  flex: 1;
+  height: 4px;
+  background: var(--bd-primary);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.sc101-progress-step:hover {
+  opacity: 0.8;
+  transform: scaleY(1.5);
+}
+.sc101-progress-step.completed {
+  background: var(--sc-main);
+}
+.sc101-progress-step.active {
+  background: linear-gradient(90deg, var(--sc-main), var(--sc-cyan));
+  height: 6px;
+}
+.sc101-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--tx-muted);
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+}
+
+/* ---- Lesson accordion ---- */
+.sc101-lesson {
+  background: var(--th-surface);
+  border: 1px solid var(--bd-primary);
+  border-radius: 16px;
+  margin-bottom: 20px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+.sc101-lesson:hover {
+  border-color: rgba(236,72,153,0.3);
+}
+.sc101-lesson.active {
+  border-color: var(--sc-main);
+  box-shadow: 0 0 40px var(--sc-glow);
+}
+.sc101-lesson-header {
+  padding: 20px 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  user-select: none;
+  transition: background 0.2s ease;
+}
+.sc101-lesson-header:hover {
+  background: var(--th-elevated);
+}
+.sc101-lesson-number {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-weight: 700;
+  font-size: 1rem;
+  flex-shrink: 0;
+  background: rgba(236,72,153,0.1);
+  color: var(--sc-main);
+  border: 1px solid rgba(236,72,153,0.2);
+  transition: all 0.3s ease;
+}
+.sc101-lesson.completed .sc101-lesson-number {
+  background: var(--sc-main);
+  color: #000;
+  border-color: var(--sc-main);
+}
+.sc101-lesson-header-text {
+  flex: 1;
+}
+.sc101-lesson-title {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--tx-primary);
+  margin-bottom: 3px;
+}
+.sc101-lesson-meta {
+  font-size: 0.8125rem;
+  color: var(--tx-muted);
+  display: flex;
+  gap: 14px;
+}
+.sc101-lesson-toggle {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--tx-muted);
+  transition: transform 0.3s ease;
+  font-size: 1rem;
+}
+.sc101-lesson.active .sc101-lesson-toggle {
+  transform: rotate(180deg);
+  color: var(--sc-main);
+}
+.sc101-lesson-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s ease;
+}
+.sc101-lesson.active .sc101-lesson-content {
+  max-height: 12000px;
+}
+.sc101-lesson-body {
+  padding: 0 24px 28px;
+  border-top: 1px solid var(--bd-primary);
+  padding-top: 24px;
+}
+.sc101-lesson-body h3 {
+  font-size: 0.8125rem;
+  color: var(--sc-main);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin: 28px 0 14px;
+  font-weight: 700;
+}
+.sc101-lesson-body h3:first-child {
+  margin-top: 0;
+}
+.sc101-lesson-body p {
+  color: var(--tx-secondary);
+  font-size: 0.9375rem;
+  margin-bottom: 14px;
+  line-height: 1.8;
+}
+.sc101-lesson-body strong {
+  color: var(--tx-primary);
+  font-weight: 600;
+}
+.sc101-lesson-body code {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  background: var(--code-bg, rgba(0,0,0,0.2));
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--sc-light);
+}
+
+/* ---- Info boxes ---- */
+.sc101-info-box {
+  background: var(--th-elevated);
+  border-left: 3px solid var(--sc-main);
+  border-radius: 0 12px 12px 0;
+  padding: 18px 22px;
+  margin: 18px 0;
+}
+.sc101-info-box.blue   { border-left-color: var(--sc-blue); }
+.sc101-info-box.green  { border-left-color: var(--sc-green); }
+.sc101-info-box.purple { border-left-color: var(--sc-purple); }
+.sc101-info-box.orange { border-left-color: var(--sc-orange); }
+.sc101-info-box.amber  { border-left-color: var(--sc-amber); }
+.sc101-info-box.cyan   { border-left-color: var(--sc-cyan); }
+.sc101-info-box-label {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--sc-main);
+  margin-bottom: 8px;
+}
+.sc101-info-box.blue   .sc101-info-box-label { color: var(--sc-blue); }
+.sc101-info-box.green  .sc101-info-box-label { color: var(--sc-green); }
+.sc101-info-box.purple .sc101-info-box-label { color: var(--sc-purple); }
+.sc101-info-box.orange .sc101-info-box-label { color: var(--sc-orange); }
+.sc101-info-box.amber  .sc101-info-box-label { color: var(--sc-amber); }
+.sc101-info-box.cyan   .sc101-info-box-label { color: var(--sc-cyan); }
+.sc101-info-box p {
+  color: var(--tx-secondary);
+  font-size: 0.875rem;
+  margin-bottom: 0;
+}
+
+/* ---- Data blocks ---- */
+.sc101-data-block {
+  background: var(--code-bg, rgba(0,0,0,0.3));
+  border: 1px solid var(--bd-primary);
+  border-radius: 12px;
+  padding: 22px;
+  margin: 18px 0;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  overflow-x: auto;
+}
+.sc101-data-section-label {
+  color: var(--sc-main);
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+}
+.sc101-data-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.sc101-data-row:last-child {
+  border-bottom: none;
+}
+.sc101-data-label {
+  color: var(--tx-muted);
+}
+.sc101-data-value {
+  color: var(--sc-light);
+  text-align: right;
+}
+.sc101-data-value.green  { color: var(--sc-green); }
+.sc101-data-value.blue   { color: var(--sc-blue); }
+.sc101-data-value.orange { color: var(--sc-orange); }
+.sc101-data-value.purple { color: var(--sc-purple); }
+.sc101-data-value.cyan   { color: var(--sc-cyan); }
+.sc101-data-value.red    { color: var(--sc-red); }
+.sc101-data-value.amber  { color: var(--sc-amber); }
+
+/* ---- Compare grid ---- */
+.sc101-compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 18px 0;
+}
+.sc101-compare-card {
+  background: var(--th-elevated);
+  border-radius: 12px;
+  padding: 18px;
+  border: 1px solid var(--bd-primary);
+}
+.sc101-compare-card h4 {
+  font-size: 0.875rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--tx-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sc101-compare-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.sc101-compare-card li {
+  color: var(--tx-secondary);
+  font-size: 0.8125rem;
+  padding: 4px 0 4px 16px;
+  position: relative;
+  line-height: 1.6;
+}
+.sc101-compare-card li::before {
+  content: "\2192";
+  position: absolute;
+  left: 0;
+  color: var(--tx-muted);
+}
+
+/* ---- Stats row ---- */
+.sc101-stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 18px 0;
+}
+.sc101-stat-card {
+  background: var(--th-elevated);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  border: 1px solid var(--bd-primary);
+}
+.sc101-stat-value {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--sc-light);
+  margin-bottom: 4px;
+}
+.sc101-stat-label {
+  font-size: 0.75rem;
+  color: var(--tx-muted);
+}
+
+/* ---- Three-column cards ---- */
+.sc101-three-col {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 18px 0;
+}
+.sc101-col-card {
+  background: var(--th-elevated);
+  border-radius: 12px;
+  padding: 18px;
+  border: 1px solid var(--bd-primary);
+}
+.sc101-col-card h4 {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--sc-main);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+.sc101-col-card p {
+  font-size: 0.8125rem;
+  color: var(--tx-secondary);
+  margin-bottom: 0;
+  line-height: 1.6;
+}
+
+/* ---- Contract code visual ---- */
+.sc101-contract-visual {
+  background: var(--code-bg, rgba(0,0,0,0.3));
+  border: 1px solid var(--bd-primary);
+  border-radius: 12px;
+  padding: 22px;
+  margin: 18px 0;
+  overflow-x: auto;
+}
+.sc101-contract-code {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.75rem;
+  line-height: 1.8;
+  color: var(--tx-secondary);
+  white-space: pre;
+}
+.sc101-contract-code .keyword { color: var(--sc-main); }
+.sc101-contract-code .type    { color: var(--sc-cyan); }
+.sc101-contract-code .func    { color: var(--sc-amber); }
+.sc101-contract-code .comment { color: var(--tx-muted); font-style: italic; }
+.sc101-contract-code .str     { color: var(--sc-green); }
+.sc101-contract-code .num     { color: var(--sc-orange); }
+
+/* ---- Deployment simulator ---- */
+.sc101-deploy-sim {
+  background: var(--code-bg, rgba(0,0,0,0.3));
+  border: 1px solid var(--bd-primary);
+  border-radius: 12px;
+  padding: 24px;
+  margin: 18px 0;
+}
+.sc101-deploy-steps {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.sc101-deploy-step-btn {
+  flex: 1;
+  padding: 10px 14px;
+  background: var(--th-elevated);
+  border: 1px solid var(--bd-primary);
+  border-radius: 10px;
+  color: var(--tx-muted);
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+.sc101-deploy-step-btn:hover {
+  border-color: var(--sc-main);
+  color: var(--tx-primary);
+}
+.sc101-deploy-step-btn.active {
+  background: rgba(236,72,153,0.15);
+  border-color: var(--sc-main);
+  color: var(--sc-main);
+}
+.sc101-deploy-step-btn.done {
+  background: rgba(16,185,129,0.15);
+  border-color: var(--sc-green);
+  color: var(--sc-green);
+}
+.sc101-deploy-output {
+  background: var(--th-surface);
+  border: 1px solid var(--bd-primary);
+  border-radius: 10px;
+  padding: 18px;
+  min-height: 120px;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.75rem;
+  line-height: 1.8;
+  color: var(--tx-secondary);
+  white-space: pre-wrap;
+  transition: all 0.3s ease;
+}
+.sc101-deploy-output .highlight {
+  color: var(--sc-main);
+  font-weight: 600;
+}
+.sc101-deploy-output .success {
+  color: var(--sc-green);
+  font-weight: 600;
+}
+.sc101-deploy-output .muted {
+  color: var(--tx-muted);
+}
+.sc101-deploy-next-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  margin-top: 14px;
+  background: rgba(236,72,153,0.1);
+  border: 1px solid rgba(236,72,153,0.3);
+  border-radius: 10px;
+  color: var(--sc-main);
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.sc101-deploy-next-btn:hover {
+  background: rgba(236,72,153,0.2);
+  border-color: var(--sc-main);
+}
+.sc101-deploy-next-btn.complete {
+  background: rgba(16,185,129,0.1);
+  border-color: rgba(16,185,129,0.3);
+  color: var(--sc-green);
+}
+
+/* ---- Quiz ---- */
+.sc101-quiz-section {
+  background: var(--th-elevated);
+  border: 1px solid var(--bd-primary);
+  border-radius: 12px;
+  padding: 22px;
+  margin-top: 24px;
+}
+.sc101-quiz-title {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--sc-main);
+  margin-bottom: 14px;
+}
+.sc101-quiz-question {
+  color: var(--tx-primary);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  margin-bottom: 14px;
+}
+.sc101-quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sc101-quiz-option {
+  background: var(--th-surface);
+  border: 1px solid var(--bd-primary);
+  border-radius: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--tx-secondary);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.sc101-quiz-option:hover:not(.disabled) {
+  border-color: var(--sc-main);
+  color: var(--tx-primary);
+  background: var(--th-elevated);
+}
+.sc101-quiz-option .option-letter {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: rgba(236,72,153,0.1);
+  color: var(--sc-main);
+  flex-shrink: 0;
+}
+.sc101-quiz-option.correct {
+  border-color: var(--sc-green);
+  background: rgba(16,185,129,0.08);
+  color: var(--sc-green);
+}
+.sc101-quiz-option.correct .option-letter {
+  background: var(--sc-green);
+  color: #000;
+}
+.sc101-quiz-option.wrong {
+  border-color: var(--sc-red);
+  background: rgba(239,68,68,0.08);
+  color: var(--sc-red);
+  opacity: 0.6;
+}
+.sc101-quiz-option.disabled {
+  pointer-events: none;
+}
+.sc101-quiz-feedback {
+  margin-top: 14px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 0.875rem;
+}
+.sc101-quiz-feedback.correct {
+  background: rgba(16,185,129,0.1);
+  border: 1px solid rgba(16,185,129,0.2);
+  color: var(--sc-green);
+}
+.sc101-quiz-feedback.wrong {
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.2);
+  color: var(--sc-red);
+}
+
+/* ---- Complete button ---- */
+.sc101-complete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px;
+  margin-top: 22px;
+  background: rgba(236,72,153,0.1);
+  border: 1px solid rgba(236,72,153,0.3);
+  border-radius: 12px;
+  color: var(--sc-main);
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.sc101-complete-btn:hover {
+  background: rgba(236,72,153,0.2);
+  border-color: var(--sc-main);
+}
+.sc101-complete-btn.done {
+  background: var(--sc-main);
+  color: #000;
+  border-color: var(--sc-main);
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 640px) {
+  .sc101-compare-grid,
+  .sc101-three-col {
+    grid-template-columns: 1fr;
+  }
+  .sc101-stats-row {
+    grid-template-columns: 1fr;
+  }
+  .sc101-deploy-steps {
+    flex-direction: column;
+  }
+}
