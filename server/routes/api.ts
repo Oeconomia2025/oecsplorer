@@ -16,7 +16,7 @@ import {
   getLatestBlockNumber,
   getBalance,
   getTokenBalances,
-  getTokenMetadata,
+  getCachedTokenMetadata,
   getAssetTransfers,
   getLogs,
   isContract,
@@ -31,6 +31,7 @@ import {
   TOKENS,
 } from "../../src/utils/constants";
 import { prisma, sanitizeForJson } from "../db";
+import { getHoldersFromCache, seedBalancesForToken } from "../services/balances";
 
 const router = Router();
 
@@ -233,7 +234,7 @@ router.get("/address/:address", async (req: Request, res: Response) => {
     const enrichedTokens = await Promise.all(
       tokenBalances.slice(0, 20).map(async (token) => {
         try {
-          const metadata = await getTokenMetadata(token.contractAddress);
+          const metadata = await getCachedTokenMetadata(token.contractAddress);
           // Check if it's an Oeconomia token
           const oecToken = TOKENS.find(
             (t) => t.address.toLowerCase() === token.contractAddress.toLowerCase()
@@ -690,7 +691,7 @@ router.get("/tokens/:address", async (req: Request, res: Response) => {
     const cached = getCached(cacheKey);
     if (cached) return res.json(cached);
 
-    const metadata = await getTokenMetadata(address);
+    const metadata = await getCachedTokenMetadata(address);
     const oecToken = TOKENS.find(
       (t) => t.address.toLowerCase() === address.toLowerCase()
     );
@@ -765,30 +766,18 @@ router.get("/tokens/:address", async (req: Request, res: Response) => {
 
 /**
  * GET /api/tokens/:address/holders
- * Real on-chain balances for addresses seen in indexed transfers
+ * Real on-chain balances for addresses seen in indexed transfers.
+ * Reads from the token_balances DB cache first (0 CUs).
+ * Falls back to Alchemy on cache miss, then seeds the cache.
  */
 router.get("/tokens/:address/holders", async (req: Request, res: Response) => {
   try {
     const { address } = req.params;
     const cacheKey = `holders:${address.toLowerCase()}`;
-    const cached = getCached(cacheKey);
-    if (cached) return res.json(cached);
+    const memoryCached = getCached(cacheKey);
+    if (memoryCached) return res.json(memoryCached);
 
     const tokenAddress = address.toLowerCase();
-
-    // 1. Discover unique addresses from indexed transfers
-    const knownAddresses = await prisma.$queryRaw<Array<{ addr: string }>>`
-      SELECT DISTINCT addr FROM (
-        SELECT from_address AS addr FROM token_transfers WHERE LOWER(token_address) = LOWER(${address})
-        UNION
-        SELECT to_address AS addr FROM token_transfers WHERE LOWER(token_address) = LOWER(${address})
-      ) AS addrs
-      LIMIT 100
-    `;
-
-    if (knownAddresses.length === 0) {
-      return res.json({ holders: [], total: 0 });
-    }
 
     // Build set of known contract addresses from PROTOCOLS + TOKENS
     const knownContracts = new Set<string>();
@@ -801,6 +790,43 @@ router.get("/tokens/:address/holders", async (req: Request, res: Response) => {
       if (!t.address.startsWith("0x00000")) {
         knownContracts.add(t.address.toLowerCase());
       }
+    }
+
+    // --- Try DB cache first (0 Alchemy CUs) ---
+    const cachedHolders = await getHoldersFromCache(tokenAddress);
+
+    if (cachedHolders && cachedHolders.length > 0) {
+      // Enrich with isContract flag
+      const enriched = await Promise.all(
+        cachedHolders.map(async (h) => ({
+          ...h,
+          isContract: knownContracts.has(h.address.toLowerCase())
+            ? true
+            : await isContract(h.address).catch(() => false),
+        }))
+      );
+
+      const result = {
+        holders: enriched.map((h, i) => ({ ...h, rank: i + 1 })),
+        total: enriched.length,
+      };
+      setCache(cacheKey, result);
+      return res.json(result);
+    }
+
+    // --- Cache miss — fall back to Alchemy (same as before) ---
+    // 1. Discover unique addresses from indexed transfers
+    const knownAddresses = await prisma.$queryRaw<Array<{ addr: string }>>`
+      SELECT DISTINCT addr FROM (
+        SELECT from_address AS addr FROM token_transfers WHERE LOWER(token_address) = LOWER(${address})
+        UNION
+        SELECT to_address AS addr FROM token_transfers WHERE LOWER(token_address) = LOWER(${address})
+      ) AS addrs
+      LIMIT 100
+    `;
+
+    if (knownAddresses.length === 0) {
+      return res.json({ holders: [], total: 0 });
     }
 
     // 2. Fetch real on-chain balance + contract status for each address
@@ -847,6 +873,15 @@ router.get("/tokens/:address/holders", async (req: Request, res: Response) => {
       total: holders.length,
     };
     setCache(cacheKey, result);
+
+    // 4. Seed the DB cache so subsequent visits are free
+    seedBalancesForToken(
+      tokenAddress,
+      balanceResults.map((r) => ({ address: r.address, balance: r.balance }))
+    ).catch((err) => {
+      console.error("[API] Failed to seed balance cache:", err instanceof Error ? err.message : err);
+    });
+
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch token holders" });

@@ -11,6 +11,7 @@ import { ProtocolDecoder } from "../services/decoder";
 import { getFullTransaction, getBlock } from "../services/alchemy";
 import { buildAddressToProtocolMap } from "../../src/utils/constants";
 import { prisma, sanitizeForJson } from "../db";
+import { refreshBalancesForTransfer, TRANSFER_TOPIC } from "../services/balances";
 
 const router = Router();
 
@@ -142,6 +143,18 @@ router.post("/alchemy", async (req: Request, res: Response) => {
         });
       } catch (dbErr) {
         console.error("[Webhook] DB write error:", dbErr instanceof Error ? dbErr.message : dbErr);
+      }
+
+      // Update token balance cache for Transfer events
+      for (const log of fullTx.logs) {
+        if (log.topics[0] === TRANSFER_TOPIC && log.topics.length >= 3) {
+          const tokenAddr = log.address.toLowerCase();
+          const from = "0x" + log.topics[1].slice(26);
+          const to = "0x" + log.topics[2].slice(26);
+          refreshBalancesForTransfer(tokenAddr, from, to).catch((err) => {
+            console.error("[Webhook] Balance refresh error:", err instanceof Error ? err.message : err);
+          });
+        }
       }
 
       console.log(

@@ -9,6 +9,7 @@
 import { prisma, sanitizeForJson } from "../db";
 import { getLatestBlockNumber, getFullTransaction, getBlockWithTransactions } from "./alchemy";
 import { ProtocolDecoder } from "./decoder";
+import { refreshBalancesForTransfer } from "./balances";
 import {
   buildAddressToProtocolMap,
   getExclusiveContractAddresses,
@@ -93,6 +94,9 @@ async function storeTokenTransfers(
           decimals,
         },
       });
+
+      // Keep balance cache fresh
+      refreshBalancesForTransfer(tokenAddress, fromAddr, toAddr).catch(() => {});
     } catch (err) {
       // Skip duplicates or errors silently
     }

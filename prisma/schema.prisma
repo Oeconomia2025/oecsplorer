@@ -96,6 +96,39 @@ model ProtocolMetric {
   @@map("protocol_metrics")
 }
 
+// ── Token Metadata Cache (reduces Alchemy CU usage) ──────────
+// Stores token symbol/name/decimals/logo so we only call
+// alchemy.core.getTokenMetadata() once per token, ever.
+
+model TokenMetadataCache {
+  contractAddress String   @id @map("contract_address") @db.VarChar(42)
+  symbol          String   @db.VarChar(30)
+  name            String   @db.VarChar(100)
+  decimals        Int
+  logo            String?
+  fetchedAt       DateTime @default(now()) @map("fetched_at")
+
+  @@map("token_metadata_cache")
+}
+
+// ── Token Balance Cache (reduces Alchemy CU usage on holders) ─
+// Stores per-wallet token balances so the holders endpoint reads
+// from DB instead of calling getTokenBalances() × N addresses.
+// Updated by webhooks + indexer on every Transfer event.
+
+model TokenBalance {
+  id            Int      @id @default(autoincrement())
+  walletAddress String   @map("wallet_address") @db.VarChar(42)
+  tokenAddress  String   @map("token_address") @db.VarChar(42)
+  balance       String   // Raw hex or decimal string from Alchemy
+  lastUpdated   DateTime @default(now()) @map("last_updated")
+
+  @@unique([walletAddress, tokenAddress])
+  @@index([tokenAddress])
+  @@index([walletAddress])
+  @@map("token_balances")
+}
+
 // ── Indexed Blocks (for tracking sync progress) ───────────────
 
 model IndexedBlock {

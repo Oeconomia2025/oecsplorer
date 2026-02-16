@@ -6,6 +6,7 @@
 // ============================================================
 
 import { Alchemy, Network, AssetTransfersCategory } from "alchemy-sdk";
+import { prisma } from "../db";
 
 // -- Configuration ----------------------------------------------------------
 
@@ -127,6 +128,54 @@ export async function getTokenMetadata(contractAddress: string) {
     decimals: metadata.decimals || 18,
     logo: metadata.logo || null,
   };
+}
+
+/**
+ * Get token metadata with DB-level caching.
+ * First call for any token hits Alchemy (1 CU), all subsequent calls are free.
+ */
+export async function getCachedTokenMetadata(contractAddress: string) {
+  const addr = contractAddress.toLowerCase();
+
+  // Check DB cache first
+  const cached = await prisma.tokenMetadataCache.findUnique({
+    where: { contractAddress: addr },
+  });
+  if (cached) {
+    return {
+      symbol: cached.symbol,
+      name: cached.name,
+      decimals: cached.decimals,
+      logo: cached.logo,
+    };
+  }
+
+  // Miss — fetch from Alchemy (costs 1 CU)
+  const metadata = await getTokenMetadata(contractAddress);
+
+  // Store in DB so we never call Alchemy for this token again
+  try {
+    await prisma.tokenMetadataCache.upsert({
+      where: { contractAddress: addr },
+      create: {
+        contractAddress: addr,
+        symbol: metadata.symbol,
+        name: metadata.name,
+        decimals: metadata.decimals,
+        logo: metadata.logo,
+      },
+      update: {
+        symbol: metadata.symbol,
+        name: metadata.name,
+        decimals: metadata.decimals,
+        logo: metadata.logo,
+      },
+    });
+  } catch {
+    // Non-fatal — cache write failure shouldn't break the request
+  }
+
+  return metadata;
 }
 
 /**
