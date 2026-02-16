@@ -10,6 +10,7 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import path from "path";
 import { createServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
 import apiRoutes from "./routes/api";
@@ -91,6 +92,23 @@ app.get("/health", (_req, res) => {
     uptime: process.uptime(),
     wsClients: io.engine.clientsCount,
     timestamp: new Date().toISOString(),
+  });
+});
+
+// -- Static File Serving (production) ---------------------------------------
+// In production on Railway, Express serves the Vite-built frontend.
+// In development, Vite dev server handles this via proxy.
+
+const distPath = path.join(process.cwd(), "dist");
+app.use(express.static(distPath));
+
+// SPA fallback — serve index.html for any non-API route
+app.get("*", (req, res, next) => {
+  if (req.path.startsWith("/api") || req.path === "/health") {
+    return next();
+  }
+  res.sendFile(path.join(distPath, "index.html"), (err) => {
+    if (err) next(); // If dist/index.html doesn't exist (dev mode), skip
   });
 });
 
