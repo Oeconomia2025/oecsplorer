@@ -10,6 +10,7 @@
 // ============================================================
 
 import { Router, Request, Response } from "express";
+import { ethers } from "ethers";
 import {
   getFullTransaction,
   getBlock,
@@ -48,48 +49,173 @@ const decoder = new ProtocolDecoder(decoderMap);
 const apiCache = new Map<string, { data: unknown; expiresAt: number }>();
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-// ── Token Price Fetching (CoinGecko) ──────────────────────────
+// ── Token Price Fetching (Uniswap V3 Quoter + Eloqura DEX) ───
+// Same 3-tier approach used by the DAO Hub and Eloqura Swap:
+// 1. Direct token → USDC via Uniswap V3 QuoterV2
+// 2. Token → WETH → USDC multi-hop
+// 3. Eloqura DEX pool reserves fallback
 
-/** Map Sepolia token addresses → CoinGecko IDs for mainnet reference prices */
-const COINGECKO_ID_MAP: Record<string, string> = {
-  "0x1c7d4b196cb0c7b01d743fbc6116a902379c7238": "usd-coin",      // USDC
-  "0x779877a7b0d9e8603169ddbd7836e478b4624789": "chainlink",      // LINK
-  "0x34b11f6b8f78fa010bbca71bc7fe79daa811b89f": "ethereum",       // WETH (Eloqura)
-  "0xfff9976782d46cc05630d1f6ebab18b2324d6b14": "ethereum",       // WETH (Uniswap)
+const UNISWAP_QUOTER_V2 = "0xEd1f6473345F45b75F8179591dd5bA1888cf2FB3";
+const UNISWAP_WETH = "0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14";
+const USDC_ADDRESS = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238";
+const ELOQURA_FACTORY = "0x1a4C7849Dd8f62AefA082360b3A8D857952B3b8e";
+const FEE_TIERS = [3000, 500, 10000]; // 0.3%, 0.05%, 1%
+
+const QUOTER_ABI = [
+  "function quoteExactInputSingle((address tokenIn, address tokenOut, uint256 amountIn, uint24 fee, uint160 sqrtPriceLimitX96)) external returns (uint256 amountOut, uint160 sqrtPriceX96After, uint32 initializedTicksCrossed, uint256 gasEstimate)",
+];
+const FACTORY_ABI = [
+  "function getPair(address, address) external view returns (address)",
+];
+const PAIR_ABI = [
+  "function token0() external view returns (address)",
+  "function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast)",
+];
+
+// Tokens to price (address → { symbol, decimals })
+const PRICE_TOKENS: Record<string, { symbol: string; decimals: number }> = {
+  "0x1c7d4b196cb0c7b01d743fbc6116a902379c7238": { symbol: "USDC", decimals: 6 },
+  "0x779877a7b0d9e8603169ddbd7836e478b4624789": { symbol: "LINK", decimals: 18 },
+  "0xfff9976782d46cc05630d1f6ebab18b2324d6b14": { symbol: "WETH", decimals: 18 },
+  "0x34b11f6b8f78fa010bbca71bc7fe79daa811b89f": { symbol: "WETH", decimals: 18 },
+  "0x2b2fb8df4ac5d394f0d5674d7a54802e42a06aba": { symbol: "OEC", decimals: 18 },
+  "0x4feb15d0644e5c7bb64dcd85744f0f2ab5f7a253": { symbol: "ELOQ", decimals: 18 },
 };
 
-const PRICE_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+const PRICE_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-async function getTokenPrices(): Promise<Record<string, number>> {
-  const cached = getCached<Record<string, number>>("token-prices");
+async function getTokenPrices(extraTokens?: Array<{ address: string; decimals: number }>): Promise<Record<string, number>> {
+  const cacheKey = "token-prices";
+  const cached = getCached<Record<string, number>>(cacheKey);
   if (cached) return cached;
 
-  try {
-    const ids = [...new Set(Object.values(COINGECKO_ID_MAP))].join(",");
-    const resp = await fetch(
-      `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd`
-    );
-    if (!resp.ok) throw new Error(`CoinGecko ${resp.status}`);
-    const data = await resp.json();
+  const prices: Record<string, number> = {};
 
-    // Build address → USD price map
-    const prices: Record<string, number> = {};
-    for (const [addr, cgId] of Object.entries(COINGECKO_ID_MAP)) {
-      if (data[cgId]?.usd) {
-        prices[addr] = data[cgId].usd;
+  try {
+    const rpcUrl = `https://eth-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY || ""}`;
+    const provider = new ethers.JsonRpcProvider(rpcUrl);
+    const quoter = new ethers.Contract(UNISWAP_QUOTER_V2, QUOTER_ABI, provider);
+
+    // USDC = $1
+    prices["0x1c7d4b196cb0c7b01d743fbc6116a902379c7238"] = 1;
+
+    // Price ETH/WETH first (needed for multi-hop)
+    let ethPrice = 0;
+    for (const fee of FEE_TIERS) {
+      try {
+        const result = await quoter.quoteExactInputSingle.staticCall({
+          tokenIn: UNISWAP_WETH,
+          tokenOut: USDC_ADDRESS,
+          amountIn: ethers.parseUnits("1", 18),
+          fee,
+          sqrtPriceLimitX96: 0n,
+        });
+        const usdPrice = parseFloat(ethers.formatUnits(result.amountOut, 6));
+        if (usdPrice > 0) { ethPrice = usdPrice; break; }
+      } catch { continue; }
+    }
+
+    if (ethPrice > 0) {
+      prices["__eth__"] = ethPrice;
+      prices["0xfff9976782d46cc05630d1f6ebab18b2324d6b14"] = ethPrice;
+      prices["0x34b11f6b8f78fa010bbca71bc7fe79daa811b89f"] = ethPrice;
+    }
+
+    // Merge predefined + extra wallet tokens for pricing
+    const allTokensToPrice: Record<string, { symbol: string; decimals: number }> = { ...PRICE_TOKENS };
+    if (extraTokens) {
+      for (const t of extraTokens) {
+        const a = t.address.toLowerCase();
+        if (!allTokensToPrice[a]) allTokensToPrice[a] = { symbol: "?", decimals: t.decimals };
       }
     }
-    // Also store ETH price under a special key for ethBalance
-    if (data.ethereum?.usd) {
-      prices["__eth__"] = data.ethereum.usd;
+
+    // Price remaining tokens
+    for (const [addr, token] of Object.entries(allTokensToPrice)) {
+      if (prices[addr] != null) continue; // already priced
+      if (token.symbol === "USDC") continue;
+
+      const quoterAddr = addr as string;
+      let priceFound = false;
+
+      // Tier 1: Direct token → USDC
+      for (const fee of FEE_TIERS) {
+        try {
+          const result = await quoter.quoteExactInputSingle.staticCall({
+            tokenIn: quoterAddr,
+            tokenOut: USDC_ADDRESS,
+            amountIn: ethers.parseUnits("1", token.decimals),
+            fee,
+            sqrtPriceLimitX96: 0n,
+          });
+          const usdPrice = parseFloat(ethers.formatUnits(result.amountOut, 6));
+          if (usdPrice > 0) { prices[addr] = usdPrice; priceFound = true; break; }
+        } catch { continue; }
+      }
+
+      // Tier 2: Token → WETH → USDC
+      if (!priceFound && ethPrice > 0) {
+        for (const fee of FEE_TIERS) {
+          try {
+            const result = await quoter.quoteExactInputSingle.staticCall({
+              tokenIn: quoterAddr,
+              tokenOut: UNISWAP_WETH,
+              amountIn: ethers.parseUnits("1", token.decimals),
+              fee,
+              sqrtPriceLimitX96: 0n,
+            });
+            const wethAmount = parseFloat(ethers.formatUnits(result.amountOut, 18));
+            if (wethAmount > 0) { prices[addr] = wethAmount * ethPrice; priceFound = true; break; }
+          } catch { continue; }
+        }
+      }
+
+      // Tier 3: Eloqura DEX pool reserves
+      if (!priceFound) {
+        try {
+          const factory = new ethers.Contract(ELOQURA_FACTORY, FACTORY_ABI, provider);
+          const pairAddress = await factory.getPair(addr, USDC_ADDRESS);
+          if (pairAddress && pairAddress !== ethers.ZeroAddress) {
+            const pair = new ethers.Contract(pairAddress, PAIR_ABI, provider);
+            const [reserves, token0] = await Promise.all([
+              pair.getReserves(),
+              pair.token0(),
+            ]);
+            const isToken0 = token0.toLowerCase() === addr;
+            const tokenReserve = parseFloat(ethers.formatUnits(isToken0 ? reserves[0] : reserves[1], token.decimals));
+            const usdcReserve = parseFloat(ethers.formatUnits(isToken0 ? reserves[1] : reserves[0], 6));
+            if (tokenReserve > 0) { prices[addr] = usdcReserve / tokenReserve; priceFound = true; }
+          }
+        } catch { /* no Eloqura pair */ }
+      }
+
+      // Tier 3b: Eloqura DEX via WETH pair
+      if (!priceFound && ethPrice > 0) {
+        try {
+          const eloquraWeth = "0x34b11F6b8f78fa010bBCA71bC7FE79dAa811b89f";
+          const factory = new ethers.Contract(ELOQURA_FACTORY, FACTORY_ABI, provider);
+          const pairAddress = await factory.getPair(addr, eloquraWeth);
+          if (pairAddress && pairAddress !== ethers.ZeroAddress) {
+            const pair = new ethers.Contract(pairAddress, PAIR_ABI, provider);
+            const [reserves, token0] = await Promise.all([
+              pair.getReserves(),
+              pair.token0(),
+            ]);
+            const isToken0 = token0.toLowerCase() === addr;
+            const tokenReserve = parseFloat(ethers.formatUnits(isToken0 ? reserves[0] : reserves[1], token.decimals));
+            const wethReserve = parseFloat(ethers.formatUnits(isToken0 ? reserves[1] : reserves[0], 18));
+            if (tokenReserve > 0) { prices[addr] = (wethReserve / tokenReserve) * ethPrice; }
+          }
+        } catch { /* no Eloqura WETH pair */ }
+      }
     }
 
     setCache("token-prices", prices, PRICE_CACHE_TTL);
-    return prices;
   } catch (err) {
-    console.error("[API] CoinGecko price fetch failed:", err instanceof Error ? err.message : err);
-    return {};
+    console.error("[API] Token price fetch failed:", err instanceof Error ? err.message : err);
   }
+
+  return prices;
 }
 
 function getCached<T>(key: string): T | null {
@@ -260,7 +386,7 @@ router.get("/address/:address", async (req: Request, res: Response) => {
       ],
     };
 
-    const [ethBalance, tokenBalances, recentTransfers, indexedTransactions, txTotal, tokenPrices] = await Promise.all([
+    const [ethBalance, tokenBalances, recentTransfers, indexedTransactions, txTotal] = await Promise.all([
       getBalance(address),
       getTokenBalances(address),
       getAssetTransfers({ fromAddress: address, maxCount: 20 }),
@@ -272,39 +398,47 @@ router.get("/address/:address", async (req: Request, res: Response) => {
         include: { tokenTransfers: true },
       }),
       prisma.transaction.count({ where: txWhere }),
-      getTokenPrices(),
     ]);
 
-    // Enrich token balances with metadata + USD prices
-    const enrichedTokens = await Promise.all(
+    // Resolve metadata first so we know decimals for pricing
+    const tokenMetas = await Promise.all(
       tokenBalances.slice(0, 20).map(async (token) => {
         try {
           const metadata = await getCachedTokenMetadata(token.contractAddress);
-          // Check if it's an Oeconomia token
           const oecToken = TOKENS.find(
             (t) => t.address.toLowerCase() === token.contractAddress.toLowerCase()
           );
-          const decimals = metadata.decimals ?? oecToken?.decimals ?? 18;
-          const priceUsd = tokenPrices[token.contractAddress.toLowerCase()] ?? null;
-          // Calculate USD value from raw balance
-          let valueUsd: number | null = null;
-          if (priceUsd != null && token.balance) {
-            const bal = Number(BigInt(token.balance)) / Math.pow(10, decimals);
-            valueUsd = bal * priceUsd;
-          }
-          return {
-            ...token,
-            ...metadata,
-            isOeconomia: !!oecToken,
-            protocol: oecToken?.protocol || null,
-            priceUsd,
-            valueUsd,
-          };
+          return { token, metadata, oecToken, decimals: metadata.decimals ?? oecToken?.decimals ?? 18 };
         } catch {
-          return { ...token, symbol: "???", name: "Unknown", decimals: 18, isOeconomia: false, priceUsd: null, valueUsd: null };
+          return { token, metadata: { symbol: "???", name: "Unknown", decimals: 18 } as any, oecToken: undefined, decimals: 18 };
         }
       })
     );
+
+    // Fetch prices — pass wallet tokens so unknown tokens also get priced
+    const extraTokens = tokenMetas.map((m) => ({
+      address: m.token.contractAddress,
+      decimals: m.decimals,
+    }));
+    const tokenPrices = await getTokenPrices(extraTokens);
+
+    // Enrich token balances with metadata + USD prices
+    const enrichedTokens = tokenMetas.map(({ token, metadata, oecToken, decimals }) => {
+      const priceUsd = tokenPrices[token.contractAddress.toLowerCase()] ?? null;
+      let valueUsd: number | null = null;
+      if (priceUsd != null && token.balance) {
+        const bal = Number(BigInt(token.balance)) / Math.pow(10, decimals);
+        valueUsd = bal * priceUsd;
+      }
+      return {
+        ...token,
+        ...metadata,
+        isOeconomia: !!oecToken,
+        protocol: oecToken?.protocol || null,
+        priceUsd,
+        valueUsd,
+      };
+    });
 
     // Check for Oeconomia protocol positions from DB
     const walletPositions = await prisma.walletPosition.findMany({
