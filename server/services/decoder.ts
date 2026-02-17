@@ -34,18 +34,21 @@ export interface DecodedEvent {
 
 const ACTION_LABELS: Record<string, Record<string, string>> = {
   oeconomia: {
-    stake:              "Guardian Staked OEC",
-    unstake:            "Guardian Unstaked OEC",
-    stakeOEC:           "Guardian Staked OEC",
-    unstakeOEC:         "Guardian Unstaked OEC",
-    vote:               "Governance Vote Cast",
-    createProposal:     "Proposal Created",
-    executeProposal:    "Proposal Executed",
-    claimRewards:       "Claimed Guardian Rewards",
-    delegateVotes:      "Votes Delegated",
-    transfer:           "OEC Transfer",
-    transferFrom:       "OEC Transfer",
-    approve:            "OEC Approval",
+    stake:              "Stake",
+    unstake:            "Unstake",
+    stakeOEC:           "Stake",
+    unstakeOEC:         "Unstake",
+    getReward:          "Get Reward",
+    withdraw:           "Withdraw",
+    earlyWithdraw:      "Early Withdraw",
+    vote:               "Governance Vote",
+    createProposal:     "Create Proposal",
+    executeProposal:    "Execute Proposal",
+    claimRewards:       "Claim Rewards",
+    delegateVotes:      "Delegate Votes",
+    transfer:           "Transfer",
+    transferFrom:       "Transfer",
+    approve:            "Approve",
   },
   alluria: {
     openVault:          "Opened Alluria Vault",
@@ -139,9 +142,12 @@ const ACTION_LABELS: Record<string, Record<string, string>> = {
 
 const PROTOCOL_ABIS: Record<string, string[]> = {
   oeconomia: [
-    // Real deployed staking contract
+    // Real deployed staking contract (MultiPoolStakingAPR)
     "function stake(uint256 _packageId, uint256 _amount) external",
     "function unstake(uint256 _packageId) external",
+    "function getReward(uint256 poolId) external",
+    "function withdraw(uint256 poolId, uint256 amount) external",
+    "function earlyWithdraw(uint256 poolId, uint256 amount) external",
     // Legacy / future governance functions
     "function stakeOEC(uint256 amount) external",
     "function unstakeOEC(uint256 amount) external",
