@@ -84,6 +84,21 @@ function Header() {
         {/* Theme Toggle */}
         <ThemeToggle />
 
+        {/* Oeconomia button */}
+        <a
+          href="https://oeconomia.io/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg text-tx-primary hover:brightness-110 transition-all"
+          style={{
+            background: `linear-gradient(${theme === "dark" ? "#000000" : "#ffffff"}, ${theme === "dark" ? "#000000" : "#ffffff"}) padding-box, linear-gradient(45deg, #a855f7, #3b82f6, #06b6d4) border-box`,
+            border: "2px solid transparent",
+          }}
+        >
+          <img src="/oec-logo.png" alt="OEC" className="w-4 h-4 rounded-full object-cover" />
+          <span className="text-xs font-medium">Oeconomia</span>
+        </a>
+
         {/* Network badge */}
         <div className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg bg-th-elevated border border-bd-primary">
           <span className="w-2 h-2 rounded-full bg-status-live" style={{ boxShadow: "0 0 6px #22C55E44" }} />
