@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { ProtocolBadge, ProtocolIcon, EmptyState } from "@/components/shared";
 import { Pagination } from "@/components/Pagination";
-import { timeAgo, etherscanLink, weiToEth, formatTokenAmount } from "@/utils/formatters";
+import { timeAgo, etherscanLink, weiToEth, formatTokenAmount, formatUSD } from "@/utils/formatters";
 import { fetchAddress } from "@/services/api";
 import { CHAIN_ID, TOKENS, PROTOCOLS } from "@/utils/constants";
 import type { ProtocolId } from "@/utils/constants";
@@ -228,17 +228,20 @@ export default function AddressDetail() {
                     <th className="text-left px-4 py-2.5 font-medium">Token</th>
                     <th className="text-left px-4 py-2.5 font-medium">Protocol</th>
                     <th className="text-right px-4 py-2.5 font-medium">Balance</th>
+                    <th className="text-right px-4 py-2.5 font-medium">Value</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {tokenBalances.map((tb: any) => {
+                  {[...tokenBalances]
+                    .sort((a: any, b: any) => (b.valueUsd ?? -1) - (a.valueUsd ?? -1))
+                    .map((tb: any) => {
                     const knownToken = TOKENS.find(
                       (t) => t.address.toLowerCase() === tb.contractAddress?.toLowerCase()
                     );
                     const symbol = tb.symbol || knownToken?.symbol || "???";
                     const name = tb.name || knownToken?.name || "Unknown Token";
                     const decimals = tb.decimals ?? knownToken?.decimals ?? 18;
-                    const logo = knownToken?.logo;
+                    const logo = tb.logo || knownToken?.logo;
                     const color = knownToken?.color || "#6b7280";
 
                     return (
@@ -270,6 +273,9 @@ export default function AddressDetail() {
                         </td>
                         <td className="px-4 py-2.5 text-right text-sm font-mono text-tx-primary">
                           {formatTokenAmount(tb.tokenBalance || tb.balance, decimals, 4)} {symbol}
+                        </td>
+                        <td className="px-4 py-2.5 text-right text-sm font-mono text-tx-tertiary">
+                          {tb.valueUsd != null ? formatUSD(tb.valueUsd) : "\u2014"}
                         </td>
                       </tr>
                     );

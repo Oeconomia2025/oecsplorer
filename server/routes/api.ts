@@ -48,6 +48,50 @@ const decoder = new ProtocolDecoder(decoderMap);
 const apiCache = new Map<string, { data: unknown; expiresAt: number }>();
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
+// ── Token Price Fetching (CoinGecko) ──────────────────────────
+
+/** Map Sepolia token addresses → CoinGecko IDs for mainnet reference prices */
+const COINGECKO_ID_MAP: Record<string, string> = {
+  "0x1c7d4b196cb0c7b01d743fbc6116a902379c7238": "usd-coin",      // USDC
+  "0x779877a7b0d9e8603169ddbd7836e478b4624789": "chainlink",      // LINK
+  "0x34b11f6b8f78fa010bbca71bc7fe79daa811b89f": "ethereum",       // WETH (Eloqura)
+  "0xfff9976782d46cc05630d1f6ebab18b2324d6b14": "ethereum",       // WETH (Uniswap)
+};
+
+const PRICE_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+
+async function getTokenPrices(): Promise<Record<string, number>> {
+  const cached = getCached<Record<string, number>>("token-prices");
+  if (cached) return cached;
+
+  try {
+    const ids = [...new Set(Object.values(COINGECKO_ID_MAP))].join(",");
+    const resp = await fetch(
+      `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd`
+    );
+    if (!resp.ok) throw new Error(`CoinGecko ${resp.status}`);
+    const data = await resp.json();
+
+    // Build address → USD price map
+    const prices: Record<string, number> = {};
+    for (const [addr, cgId] of Object.entries(COINGECKO_ID_MAP)) {
+      if (data[cgId]?.usd) {
+        prices[addr] = data[cgId].usd;
+      }
+    }
+    // Also store ETH price under a special key for ethBalance
+    if (data.ethereum?.usd) {
+      prices["__eth__"] = data.ethereum.usd;
+    }
+
+    setCache("token-prices", prices, PRICE_CACHE_TTL);
+    return prices;
+  } catch (err) {
+    console.error("[API] CoinGecko price fetch failed:", err instanceof Error ? err.message : err);
+    return {};
+  }
+}
+
 function getCached<T>(key: string): T | null {
   const entry = apiCache.get(key);
   if (!entry) return null;
@@ -216,7 +260,7 @@ router.get("/address/:address", async (req: Request, res: Response) => {
       ],
     };
 
-    const [ethBalance, tokenBalances, recentTransfers, indexedTransactions, txTotal] = await Promise.all([
+    const [ethBalance, tokenBalances, recentTransfers, indexedTransactions, txTotal, tokenPrices] = await Promise.all([
       getBalance(address),
       getTokenBalances(address),
       getAssetTransfers({ fromAddress: address, maxCount: 20 }),
@@ -228,9 +272,10 @@ router.get("/address/:address", async (req: Request, res: Response) => {
         include: { tokenTransfers: true },
       }),
       prisma.transaction.count({ where: txWhere }),
+      getTokenPrices(),
     ]);
 
-    // Enrich token balances with metadata
+    // Enrich token balances with metadata + USD prices
     const enrichedTokens = await Promise.all(
       tokenBalances.slice(0, 20).map(async (token) => {
         try {
@@ -239,14 +284,24 @@ router.get("/address/:address", async (req: Request, res: Response) => {
           const oecToken = TOKENS.find(
             (t) => t.address.toLowerCase() === token.contractAddress.toLowerCase()
           );
+          const decimals = metadata.decimals ?? oecToken?.decimals ?? 18;
+          const priceUsd = tokenPrices[token.contractAddress.toLowerCase()] ?? null;
+          // Calculate USD value from raw balance
+          let valueUsd: number | null = null;
+          if (priceUsd != null && token.balance) {
+            const bal = Number(BigInt(token.balance)) / Math.pow(10, decimals);
+            valueUsd = bal * priceUsd;
+          }
           return {
             ...token,
             ...metadata,
             isOeconomia: !!oecToken,
             protocol: oecToken?.protocol || null,
+            priceUsd,
+            valueUsd,
           };
         } catch {
-          return { ...token, symbol: "???", name: "Unknown", decimals: 18, isOeconomia: false };
+          return { ...token, symbol: "???", name: "Unknown", decimals: 18, isOeconomia: false, priceUsd: null, valueUsd: null };
         }
       })
     );
