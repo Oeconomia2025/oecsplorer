@@ -41,7 +41,10 @@ export default function AddressDetail() {
   }
 
   const tokenBalances = (data?.tokens || []).filter(
-    (t: any) => t.tokenBalance && t.tokenBalance !== "0x0000000000000000000000000000000000000000000000000000000000000000"
+    (t: any) => {
+      const bal = t.tokenBalance || t.balance;
+      return bal && bal !== "0" && bal !== "0x0000000000000000000000000000000000000000000000000000000000000000";
+    }
   );
 
   const allTransactions: any[] = data?.transactions || [];
@@ -248,7 +251,7 @@ export default function AddressDetail() {
                       </div>
                     </div>
                     <div className="text-sm font-mono text-tx-primary">
-                      {formatTokenAmount(tb.tokenBalance, decimals, 4)} {symbol}
+                      {formatTokenAmount(tb.tokenBalance || tb.balance, decimals, 4)} {symbol}
                     </div>
                     {knownToken && (
                       <div className="mt-1">
