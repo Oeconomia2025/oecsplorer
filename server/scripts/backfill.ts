@@ -200,8 +200,15 @@ async function fetchAndStoreTransfers(
           continue;
         }
 
+        // Only store transactions directly TO or FROM our exclusive contracts
+        // (skip noise from aggregators, smart wallets, etc. that only
+        //  tangentially involve our contracts via token transfers)
+        const isToExclusive = decoder.isOeconomiaContract(fullTx.to);
+        const isFromExclusive = decoder.isOeconomiaContract(fullTx.from);
+        if (!isToExclusive && !isFromExclusive) continue;
+
         // Decode
-        const decoded = decoder.isOeconomiaContract(fullTx.to)
+        const decoded = isToExclusive
           ? decoder.decode({
               to: fullTx.to,
               input: fullTx.input,
