@@ -221,46 +221,61 @@ export default function AddressDetail() {
       {activeTab === "balances" && (
         <div>
           {tokenBalances.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {tokenBalances.map((tb: any) => {
-                const knownToken = TOKENS.find(
-                  (t) => t.address.toLowerCase() === tb.contractAddress?.toLowerCase()
-                );
-                const symbol = tb.symbol || knownToken?.symbol || "???";
-                const name = tb.name || knownToken?.name || "Unknown Token";
-                const decimals = tb.decimals ?? knownToken?.decimals ?? 18;
-                const logo = knownToken?.logo;
-                const color = knownToken?.color || "#6b7280";
+            <div className="border border-bd-primary rounded-xl overflow-hidden">
+              <table className="w-full">
+                <thead>
+                  <tr className="text-xs text-tx-muted border-b border-bd-primary">
+                    <th className="text-left px-4 py-2.5 font-medium">Token</th>
+                    <th className="text-left px-4 py-2.5 font-medium">Protocol</th>
+                    <th className="text-right px-4 py-2.5 font-medium">Balance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tokenBalances.map((tb: any) => {
+                    const knownToken = TOKENS.find(
+                      (t) => t.address.toLowerCase() === tb.contractAddress?.toLowerCase()
+                    );
+                    const symbol = tb.symbol || knownToken?.symbol || "???";
+                    const name = tb.name || knownToken?.name || "Unknown Token";
+                    const decimals = tb.decimals ?? knownToken?.decimals ?? 18;
+                    const logo = knownToken?.logo;
+                    const color = knownToken?.color || "#6b7280";
 
-                return (
-                  <div key={tb.contractAddress} className="p-4 rounded-xl border border-bd-primary bg-th-surface">
-                    <div className="flex items-center gap-3 mb-2">
-                      {logo ? (
-                        <img src={logo} alt={symbol} className="w-8 h-8 rounded-full object-contain" />
-                      ) : (
-                        <div
-                          className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
-                          style={{ backgroundColor: `${color}20`, color }}
-                        >
-                          {symbol.slice(0, 2)}
-                        </div>
-                      )}
-                      <div>
-                        <div className="text-sm font-semibold text-tx-primary">{symbol}</div>
-                        <div className="text-xs text-tx-muted">{name}</div>
-                      </div>
-                    </div>
-                    <div className="text-sm font-mono text-tx-primary">
-                      {formatTokenAmount(tb.tokenBalance || tb.balance, decimals, 4)} {symbol}
-                    </div>
-                    {knownToken && (
-                      <div className="mt-1">
-                        <ProtocolBadge protocol={knownToken.protocol} />
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+                    return (
+                      <tr key={tb.contractAddress} className="border-b border-bd-secondary hover:bg-btn-hover-bg transition-colors">
+                        <td className="px-4 py-2.5">
+                          <div className="flex items-center gap-3">
+                            {logo ? (
+                              <img src={logo} alt={symbol} className="w-6 h-6 rounded-full object-contain" />
+                            ) : (
+                              <div
+                                className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold"
+                                style={{ backgroundColor: `${color}20`, color }}
+                              >
+                                {symbol.slice(0, 2)}
+                              </div>
+                            )}
+                            <div>
+                              <div className="text-sm font-semibold text-tx-primary">{symbol}</div>
+                              <div className="text-xs text-tx-muted">{name}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-2.5">
+                          {knownToken ? (
+                            <ProtocolBadge protocol={knownToken.protocol} />
+                          ) : (
+                            <span className="text-xs text-tx-muted">External</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-2.5 text-right text-sm font-mono text-tx-primary">
+                          {formatTokenAmount(tb.tokenBalance || tb.balance, decimals, 4)} {symbol}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           ) : (
             <EmptyState
