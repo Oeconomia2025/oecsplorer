@@ -105,8 +105,8 @@ const ACTION_LABELS: Record<string, Record<string, string>> = {
     // Uniswap Universal Router
     execute:                               "Universal Router Swap",
     // Common ERC-20
-    transfer:                              "Token Transfer",
-    transferFrom:                          "Token Transfer",
+    transfer:                              "Transfer",
+    transferFrom:                          "Transfer",
     approve:                               "Token Approval",
     // Bridge
     bridgeTokens:                          "Cross-Chain Bridge",
@@ -396,13 +396,13 @@ export class ProtocolDecoder {
     if (!actionType && decodedEvents.length > 0) {
       // Couldn't parse function but we have events — infer from the primary event
       const eventLabels: Record<string, string> = {
-        Transfer: "Token Transfer",
-        Approval: "Token Approval",
+        Transfer: "Transfer",
+        Approval: "Approve",
         Swap: "Token Swap",
         Mint: "Liquidity Added",
         Burn: "Liquidity Removed",
-        Staked: "Guardian Staked OEC",
-        Unstaked: "Guardian Unstaked OEC",
+        Staked: "Stake",
+        Unstaked: "Unstake",
       };
       for (const evt of decodedEvents) {
         const baseName = evt.name.includes(":") ? evt.name.split(":")[1] : evt.name;
