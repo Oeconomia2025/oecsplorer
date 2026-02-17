@@ -63,16 +63,17 @@ function Header() {
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-bd-primary bg-th-header backdrop-blur-sm">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-6">
         {/* Logo */}
-        <Link to="/" className="flex items-center shrink-0">
+        <Link to="/" className="flex items-center gap-2 shrink-0">
           <img
-            src={theme === "dark" ? "/oec-white.png" : "/oec-black.png"}
-            alt="OEC"
-            className="w-16 h-auto object-contain"
+            src={theme === "dark"
+              ? "https://pub-37d61a7eb7ae45898b46702664710cb2.r2.dev/images/Globe%20White.png"
+              : "https://pub-37d61a7eb7ae45898b46702664710cb2.r2.dev/images/Globe%20Black.png"}
+            alt="OECsplorer"
+            className="w-8 h-8 object-contain"
           />
-          <div className="hidden sm:block -ml-1">
-            <div className="text-3xl font-bold text-accent-gold tracking-wide">
-              splorer
-            </div>
+          <div className="hidden sm:flex items-baseline">
+            <span className="text-2xl font-bold text-tx-primary tracking-wide">OEC</span>
+            <span className="text-2xl font-bold text-accent-gold tracking-wide">splorer</span>
           </div>
         </Link>
 
@@ -83,6 +84,12 @@ function Header() {
 
         {/* Theme Toggle */}
         <ThemeToggle />
+
+        {/* Network badge */}
+        <div className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg bg-th-elevated border border-bd-primary">
+          <span className="w-2 h-2 rounded-full bg-status-live" style={{ boxShadow: "0 0 6px #22C55E44" }} />
+          <span className="text-xs text-tx-tertiary">Sepolia</span>
+        </div>
 
         {/* Oeconomia button */}
         <a
@@ -98,12 +105,6 @@ function Header() {
           <img src="/oec-logo.png" alt="OEC" className="w-4 h-4 rounded-full object-cover" />
           <span className="text-xs font-medium">Oeconomia</span>
         </a>
-
-        {/* Network badge */}
-        <div className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg bg-th-elevated border border-bd-primary">
-          <span className="w-2 h-2 rounded-full bg-status-live" style={{ boxShadow: "0 0 6px #22C55E44" }} />
-          <span className="text-xs text-tx-tertiary">Sepolia</span>
-        </div>
       </div>
     </header>
   );
