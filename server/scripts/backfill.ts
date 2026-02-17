@@ -15,7 +15,7 @@ import { Alchemy, Network, AssetTransfersCategory } from "alchemy-sdk";
 import { ProtocolDecoder } from "../services/decoder";
 import {
   buildAddressToProtocolMap,
-  getAllContractAddresses,
+  getExclusiveContractAddresses,
 } from "../../src/utils/constants";
 import { sanitizeForJson } from "../db";
 
@@ -57,8 +57,8 @@ async function main() {
   console.log(`Backfill from:    ${startBlock} (~${DAYS_TO_BACKFILL} days ago)`);
   console.log(`Block range:      ${latestBlock - startBlock} blocks\n`);
 
-  // Only index real deployed contracts (skip placeholder 0x000...00XX addresses)
-  const contractAddresses = getAllContractAddresses().filter(
+  // Only index exclusive Oeconomia contracts (skip placeholders and shared public contracts)
+  const contractAddresses = getExclusiveContractAddresses().filter(
     (addr) => !addr.startsWith("0x000000000000000000000000000000000000")
   );
 
