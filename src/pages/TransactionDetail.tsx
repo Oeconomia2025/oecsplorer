@@ -186,11 +186,10 @@ export default function TransactionDetail() {
   // Synthesize an ETH → WETH deposit entry when the tx sent ETH value
   // This makes swaps that wrap ETH show the full story (wallet → WETH contract)
   if (tx.valueWei && tx.valueWei !== "0" && tokenTransfers.length > 0) {
-    // Find the WETH token address used (check if any transfer involves a known WETH)
     const wethToken = TOKENS.find((t) => t.symbol === "WETH");
     const wethAddress = wethToken?.address || tx.toAddress || "";
     const ethDeposit: TokenTransfer = {
-      tokenAddress: wethAddress,
+      tokenAddress: "",  // empty so TokenPill shows "ETH", not "WETH"
       tokenSymbol: "ETH",
       fromAddress: tx.fromAddress,
       toAddress: wethAddress,
