@@ -272,10 +272,43 @@ router.get("/transactions/recent", async (req: Request, res: Response) => {
   }
 });
 
+/** Resolve token symbol + decimals from known tokens list */
+function resolveTokenSymbol(contractAddress: string): { symbol: string | null; decimals: number | null } {
+  const token = TOKENS.find(
+    (t) => t.address.toLowerCase() === contractAddress.toLowerCase()
+  );
+  return token ? { symbol: token.symbol, decimals: token.decimals } : { symbol: null, decimals: null };
+}
+
+/** Transfer topic0 = keccak256("Transfer(address,address,uint256)") */
+const TRANSFER_TOPIC = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
+
+/**
+ * Build tokenTransfers from raw receipt logs by matching Transfer events
+ * with their emitting contract address. Used to auto-repair cached txs
+ * that are missing tokenTransfers.
+ */
+function buildTokenTransfersFromLogs(
+  logs: Array<{ address: string; topics: string[]; data: string }>
+): Array<{ tokenAddress: string; tokenSymbol: string | null; fromAddress: string; toAddress: string; amount: string; decimals: number | null }> {
+  const transfers: Array<{ tokenAddress: string; tokenSymbol: string | null; fromAddress: string; toAddress: string; amount: string; decimals: number | null }> = [];
+  for (const log of logs) {
+    if (log.topics[0] !== TRANSFER_TOPIC || log.topics.length < 3) continue;
+    const tokenAddress = log.address.toLowerCase();
+    const fromAddress = "0x" + (log.topics[1] || "").slice(26).toLowerCase();
+    const toAddress = "0x" + (log.topics[2] || "").slice(26).toLowerCase();
+    const amount = log.data === "0x" ? "0" : BigInt(log.data).toString();
+    const { symbol, decimals } = resolveTokenSymbol(tokenAddress);
+    transfers.push({ tokenAddress, tokenSymbol: symbol, fromAddress, toAddress, amount, decimals });
+  }
+  return transfers;
+}
+
 /**
  * GET /api/tx/:hash
  * Fetch and decode a single transaction
  * Returns consistent field names matching the Prisma schema (txHash, fromAddress, etc.)
+ * Auto-repairs missing tokenTransfers and incorrect valueWei from chain data.
  */
 router.get("/tx/:hash", async (req: Request, res: Response) => {
   try {
@@ -283,17 +316,72 @@ router.get("/tx/:hash", async (req: Request, res: Response) => {
 
     // Check PostgreSQL cache first
     const cached = await prisma.transaction.findUnique({
-      where: { txHash: hash },
+      where: { txHash: hash as string },
       include: { tokenTransfers: true },
     });
     if (cached) {
+      let tokenTransfers = cached.tokenTransfers.map((tt) => ({
+        tokenAddress: tt.tokenAddress,
+        tokenSymbol: tt.tokenSymbol,
+        fromAddress: tt.fromAddress,
+        toAddress: tt.toAddress,
+        amount: tt.amount.toFixed(0),
+        decimals: tt.decimals,
+      }));
+      let valueWei = cached.valueWei.toString();
+
+      // Auto-repair: if tokenTransfers is empty or valueWei looks wrong, re-fetch from chain
+      const decodedData = cached.decodedData as any;
+      const hasDecodedTransfers = decodedData?.events?.some?.((e: any) => e.name === "Transfer");
+      const needsRepair = (tokenTransfers.length === 0 && hasDecodedTransfers) || valueWei === "0";
+
+      if (needsRepair) {
+        try {
+          const fullTx = await getFullTransaction(hash as string);
+          if (fullTx) {
+            // Repair tokenTransfers from raw receipt logs
+            if (tokenTransfers.length === 0 && fullTx.logs) {
+              tokenTransfers = buildTokenTransfersFromLogs(fullTx.logs);
+              // Persist repaired tokenTransfers to DB for future requests
+              for (const tt of tokenTransfers) {
+                try {
+                  await prisma.tokenTransfer.create({
+                    data: {
+                      txHash: cached.txHash,
+                      tokenAddress: tt.tokenAddress,
+                      tokenSymbol: tt.tokenSymbol,
+                      fromAddress: tt.fromAddress,
+                      toAddress: tt.toAddress,
+                      amount: tt.amount,
+                      decimals: tt.decimals,
+                    },
+                  });
+                } catch {} // skip duplicates
+              }
+            }
+            // Repair valueWei if stored as "0" but chain says otherwise
+            if (valueWei === "0" && fullTx.value && fullTx.value !== "0") {
+              valueWei = fullTx.value;
+              try {
+                await prisma.transaction.update({
+                  where: { txHash: cached.txHash },
+                  data: { valueWei: fullTx.value },
+                });
+              } catch {}
+            }
+          }
+        } catch (repairErr) {
+          console.error(`[API] Auto-repair failed for tx ${hash}:`, repairErr);
+        }
+      }
+
       res.json({
         txHash: cached.txHash,
         blockNumber: Number(cached.blockNumber),
         blockTimestamp: cached.blockTimestamp.toISOString(),
         fromAddress: cached.fromAddress,
         toAddress: cached.toAddress,
-        valueWei: cached.valueWei.toString(),
+        valueWei,
         gasUsed: cached.gasUsed.toString(),
         gasPrice: cached.gasPrice.toString(),
         status: cached.status,
@@ -301,20 +389,13 @@ router.get("/tx/:hash", async (req: Request, res: Response) => {
         actionType: cached.actionType,
         functionName: cached.functionName || null,
         decodedData: cached.decodedData,
-        tokenTransfers: cached.tokenTransfers.map((tt) => ({
-          tokenAddress: tt.tokenAddress,
-          tokenSymbol: tt.tokenSymbol,
-          fromAddress: tt.fromAddress,
-          toAddress: tt.toAddress,
-          amount: tt.amount.toFixed(0),
-          decimals: tt.decimals,
-        })),
+        tokenTransfers,
       });
       return;
     }
 
     // Fetch from Alchemy
-    const fullTx = await getFullTransaction(hash);
+    const fullTx = await getFullTransaction(hash as string);
     if (!fullTx) {
       res.status(404).json({ error: "Transaction not found" });
       return;
@@ -329,6 +410,9 @@ router.get("/tx/:hash", async (req: Request, res: Response) => {
           logs: fullTx.logs,
         })
       : null;
+
+    // Build tokenTransfers from raw receipt logs
+    const tokenTransfers = buildTokenTransfersFromLogs(fullTx.logs);
 
     // Fetch block timestamp
     let blockTimestamp = new Date().toISOString();
@@ -356,7 +440,7 @@ router.get("/tx/:hash", async (req: Request, res: Response) => {
       actionType: decoded?.actionType || "External Transaction",
       functionName: decoded?.functionName || null,
       decodedData: sanitizedDecoded,
-      tokenTransfers: [],
+      tokenTransfers,
     });
   } catch (error) {
     console.error("[API] Error fetching tx:", error);

@@ -3,7 +3,41 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { ProtocolBadge, EmptyState, CopyButton } from "@/components/shared";
 import { formatBlockNumber, weiToEth, formatGwei, formatTokenAmount, timeAgo, etherscanLink, truncateAddress } from "@/utils/formatters";
 import { fetchTransaction } from "@/services/api";
-import { CHAIN_ID, TOKENS } from "@/utils/constants";
+import { CHAIN_ID, TOKENS, PROTOCOLS, getAllContractAddresses } from "@/utils/constants";
+
+// Build a set of all known contract addresses for contract badge detection
+const KNOWN_CONTRACTS = new Set(
+  getAllContractAddresses().map((a) => a.toLowerCase())
+);
+// Also add all known token addresses
+for (const t of TOKENS) {
+  KNOWN_CONTRACTS.add(t.address.toLowerCase());
+}
+
+function isKnownContract(address: string): boolean {
+  return KNOWN_CONTRACTS.has(address.toLowerCase());
+}
+
+// Contract badge component matching the Holders tab style
+const CONTRACT_COLOR = "#da1cfe"; // OEC pink
+function ContractBadge() {
+  return (
+    <span
+      className="inline-flex items-center gap-1 shrink-0 px-1.5 py-0.5 rounded text-[10px] font-medium"
+      style={{
+        backgroundColor: `${CONTRACT_COLOR}15`,
+        color: CONTRACT_COLOR,
+        border: `1px solid ${CONTRACT_COLOR}30`,
+      }}
+      title="Contract"
+    >
+      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+      </svg>
+      Contract
+    </span>
+  );
+}
 
 interface TokenTransfer {
   tokenAddress: string;
@@ -149,6 +183,23 @@ export default function TransactionDetail() {
       }));
   }
 
+  // Synthesize an ETH → WETH deposit entry when the tx sent ETH value
+  // This makes swaps that wrap ETH show the full story (wallet → WETH contract)
+  if (tx.valueWei && tx.valueWei !== "0" && tokenTransfers.length > 0) {
+    // Find the WETH token address used (check if any transfer involves a known WETH)
+    const wethToken = TOKENS.find((t) => t.symbol === "WETH");
+    const wethAddress = wethToken?.address || tx.toAddress || "";
+    const ethDeposit: TokenTransfer = {
+      tokenAddress: wethAddress,
+      tokenSymbol: "ETH",
+      fromAddress: tx.fromAddress,
+      toAddress: wethAddress,
+      amount: tx.valueWei,
+      decimals: 18,
+    };
+    tokenTransfers = [ethDeposit, ...tokenTransfers];
+  }
+
   // Build transaction summary from decoded data
   const summary = buildSummary(tx);
 
@@ -198,33 +249,47 @@ export default function TransactionDetail() {
         {tokenTransfers.length > 0 ? (
           <div className="rounded-lg border border-bd-primary p-4 space-y-3 my-1 bg-th-surface">
             <h3 className="text-xs font-semibold text-tx-muted uppercase tracking-wide">Token Transfers</h3>
-            {tokenTransfers.map((tt, i) => (
-              <div key={i} className="flex flex-col gap-2 py-3 border-b border-bd-secondary last:border-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs text-tx-muted w-12">From</span>
-                  <Link to={`/address/${tt.fromAddress}`} className="font-mono text-sm text-accent-link hover:text-accent-link-hover break-all">
-                    {tt.fromAddress}
-                  </Link>
-                  <CopyButton text={tt.fromAddress} />
+            {tokenTransfers.map((tt, i) => {
+              const fromIsContract = isKnownContract(tt.fromAddress);
+              const toIsContract = isKnownContract(tt.toAddress);
+              return (
+                <div key={i} className="flex flex-col gap-2 py-3 border-b border-bd-secondary last:border-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs text-tx-muted w-12">From</span>
+                    <Link
+                      to={`/address/${tt.fromAddress}`}
+                      className={`font-mono text-sm break-all ${fromIsContract ? "hover:underline" : "text-accent-link hover:text-accent-link-hover"}`}
+                      style={fromIsContract ? { color: CONTRACT_COLOR } : undefined}
+                    >
+                      {tt.fromAddress}
+                    </Link>
+                    <CopyButton text={tt.fromAddress} />
+                    {fromIsContract && <ContractBadge />}
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs text-tx-muted w-12">To</span>
+                    <Link
+                      to={`/address/${tt.toAddress}`}
+                      className={`font-mono text-sm break-all ${toIsContract ? "hover:underline" : "text-accent-link hover:text-accent-link-hover"}`}
+                      style={toIsContract ? { color: CONTRACT_COLOR } : undefined}
+                    >
+                      {tt.toAddress}
+                    </Link>
+                    <CopyButton text={tt.toAddress} />
+                    {toIsContract && <ContractBadge />}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-tx-muted w-12">Amount</span>
+                    <span className="font-mono text-sm text-tx-primary font-medium">
+                      {formatTokenAmount(tt.amount, tt.decimals || 18, 2)}
+                    </span>
+                    {tt.tokenSymbol && (
+                      <TokenPill symbol={tt.tokenSymbol} address={tt.tokenAddress} />
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs text-tx-muted w-12">To</span>
-                  <Link to={`/address/${tt.toAddress}`} className="font-mono text-sm text-accent-link hover:text-accent-link-hover break-all">
-                    {tt.toAddress}
-                  </Link>
-                  <CopyButton text={tt.toAddress} />
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-tx-muted w-12">Amount</span>
-                  <span className="font-mono text-sm text-tx-primary font-medium">
-                    {formatTokenAmount(tt.amount, tt.decimals || 18, 2)}
-                  </span>
-                  {tt.tokenSymbol && (
-                    <TokenPill symbol={tt.tokenSymbol} address={tt.tokenAddress} />
-                  )}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <>
