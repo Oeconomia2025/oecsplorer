@@ -285,12 +285,12 @@ const TRANSFER_TOPIC = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a
 
 /**
  * Build tokenTransfers from raw receipt logs by matching Transfer events
- * with their emitting contract address. Used to auto-repair cached txs
- * that are missing tokenTransfers.
+ * with their emitting contract address. Looks up unknown tokens via
+ * getCachedTokenMetadata (DB-cached Alchemy call).
  */
-function buildTokenTransfersFromLogs(
+async function buildTokenTransfersFromLogs(
   logs: Array<{ address: string; topics: string[]; data: string }>
-): Array<{ tokenAddress: string; tokenSymbol: string | null; fromAddress: string; toAddress: string; amount: string; decimals: number | null }> {
+): Promise<Array<{ tokenAddress: string; tokenSymbol: string | null; fromAddress: string; toAddress: string; amount: string; decimals: number | null }>> {
   const transfers: Array<{ tokenAddress: string; tokenSymbol: string | null; fromAddress: string; toAddress: string; amount: string; decimals: number | null }> = [];
   for (const log of logs) {
     if (log.topics[0] !== TRANSFER_TOPIC || log.topics.length < 3) continue;
@@ -298,7 +298,15 @@ function buildTokenTransfersFromLogs(
     const fromAddress = "0x" + (log.topics[1] || "").slice(26).toLowerCase();
     const toAddress = "0x" + (log.topics[2] || "").slice(26).toLowerCase();
     const amount = log.data === "0x" ? "0" : BigInt(log.data).toString();
-    const { symbol, decimals } = resolveTokenSymbol(tokenAddress);
+    let { symbol, decimals } = resolveTokenSymbol(tokenAddress);
+    // If not in our known tokens list, look up on-chain (cached in DB)
+    if (!symbol) {
+      try {
+        const meta = await getCachedTokenMetadata(tokenAddress);
+        symbol = meta.symbol;
+        decimals = meta.decimals;
+      } catch {}
+    }
     transfers.push({ tokenAddress, tokenSymbol: symbol, fromAddress, toAddress, amount, decimals });
   }
   return transfers;
@@ -330,18 +338,39 @@ router.get("/tx/:hash", async (req: Request, res: Response) => {
       }));
       let valueWei = cached.valueWei.toString();
 
-      // Auto-repair: if tokenTransfers is empty or valueWei looks wrong, re-fetch from chain
+      // Auto-repair: missing tokenTransfers, null symbols/decimals, or bad valueWei
       const decodedData = cached.decodedData as any;
       const hasDecodedTransfers = decodedData?.events?.some?.((e: any) => e.name === "Transfer");
-      const needsRepair = (tokenTransfers.length === 0 && hasDecodedTransfers) || valueWei === "0";
+      const hasNullSymbols = tokenTransfers.some((tt) => !tt.tokenSymbol);
+      const needsRepair = (tokenTransfers.length === 0 && hasDecodedTransfers) || hasNullSymbols || valueWei === "0";
 
       if (needsRepair) {
         try {
-          const fullTx = await getFullTransaction(hash as string);
+          // Repair null symbols/decimals by looking up token metadata
+          if (hasNullSymbols) {
+            for (let i = 0; i < tokenTransfers.length; i++) {
+              const tt = tokenTransfers[i];
+              if (!tt.tokenSymbol && tt.tokenAddress) {
+                try {
+                  const meta = await getCachedTokenMetadata(tt.tokenAddress);
+                  tt.tokenSymbol = meta.symbol;
+                  tt.decimals = meta.decimals;
+                  // Persist fix to DB
+                  await prisma.tokenTransfer.updateMany({
+                    where: { txHash: cached.txHash, tokenAddress: tt.tokenAddress },
+                    data: { tokenSymbol: meta.symbol, decimals: meta.decimals },
+                  });
+                } catch {}
+              }
+            }
+          }
+
+          const needsChainFetch = (tokenTransfers.length === 0 && hasDecodedTransfers) || valueWei === "0";
+          const fullTx = needsChainFetch ? await getFullTransaction(hash as string) : null;
           if (fullTx) {
             // Repair tokenTransfers from raw receipt logs
             if (tokenTransfers.length === 0 && fullTx.logs) {
-              tokenTransfers = buildTokenTransfersFromLogs(fullTx.logs);
+              tokenTransfers = await buildTokenTransfersFromLogs(fullTx.logs);
               // Persist repaired tokenTransfers to DB for future requests
               for (const tt of tokenTransfers) {
                 try {
@@ -412,7 +441,7 @@ router.get("/tx/:hash", async (req: Request, res: Response) => {
       : null;
 
     // Build tokenTransfers from raw receipt logs
-    const tokenTransfers = buildTokenTransfersFromLogs(fullTx.logs);
+    const tokenTransfers = await buildTokenTransfersFromLogs(fullTx.logs);
 
     // Fetch block timestamp
     let blockTimestamp = new Date().toISOString();
