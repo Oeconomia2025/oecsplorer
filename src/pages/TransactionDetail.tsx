@@ -183,16 +183,39 @@ export default function TransactionDetail() {
       }));
   }
 
-  // Synthesize an ETH → WETH deposit entry when the tx sent ETH value
-  // This makes swaps that wrap ETH show the full story (wallet → WETH contract)
-  if (tx.valueWei && tx.valueWei !== "0" && tokenTransfers.length > 0) {
-    const wethToken = TOKENS.find((t) => t.symbol === "WETH");
-    const wethAddress = wethToken?.address || tx.toAddress || "";
+  // Synthesize an ETH ↔ WETH entry for deposit/withdraw transactions
+  // Detect by: tx sent to a WETH contract with a WETH Transfer event
+  const knownWethAddresses = TOKENS
+    .filter((t) => t.symbol === "WETH")
+    .map((t) => t.address.toLowerCase());
+  const txToWeth = knownWethAddresses.includes((tx.toAddress || "").toLowerCase());
+
+  if (txToWeth && tokenTransfers.length > 0) {
+    // Find the WETH transfer to get the amount
+    const wethTransfer = tokenTransfers.find(
+      (tt) => knownWethAddresses.includes(tt.tokenAddress?.toLowerCase() || "")
+    );
+    if (wethTransfer) {
+      const wethAddress = tx.toAddress || "";
+      // Use valueWei if available, otherwise use the WETH transfer amount
+      const ethAmount = (tx.valueWei && tx.valueWei !== "0") ? tx.valueWei : wethTransfer.amount;
+      const ethDeposit: TokenTransfer = {
+        tokenAddress: "",  // empty so TokenPill shows "ETH", not "WETH"
+        tokenSymbol: "ETH",
+        fromAddress: tx.fromAddress,
+        toAddress: wethAddress,
+        amount: ethAmount,
+        decimals: 18,
+      };
+      tokenTransfers = [ethDeposit, ...tokenTransfers];
+    }
+  } else if (tx.valueWei && tx.valueWei !== "0" && tokenTransfers.length > 0) {
+    // Generic ETH value transfer (non-WETH contract but sent ETH)
     const ethDeposit: TokenTransfer = {
-      tokenAddress: "",  // empty so TokenPill shows "ETH", not "WETH"
+      tokenAddress: "",
       tokenSymbol: "ETH",
       fromAddress: tx.fromAddress,
-      toAddress: wethAddress,
+      toAddress: tx.toAddress || "",
       amount: tx.valueWei,
       decimals: 18,
     };
