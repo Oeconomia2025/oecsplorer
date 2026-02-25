@@ -39,21 +39,6 @@ export const PROTOCOLS: Record<ProtocolId, ProtocolConfig> = {
       faucet:           "0x2e490a627c67b9e70cace4905348395559ef3411",
     },
   },
-  alluria: {
-    id: "alluria",
-    name: "Alluria",
-    shortName: "ALUR",
-    color: "#834841",
-    icon: "🏦",
-    logo: "https://pub-37d61a7eb7ae45898b46702664710cb2.r2.dev/ALUR.png",
-    description: "Lending protocol — ETH-collateralized vaults, ALUD stablecoin minting, liquidations",
-    contracts: {
-      vaultManager:     "0x0000000000000000000000000000000000000010", // TODO: replace
-      stabilityPool:    "0x0000000000000000000000000000000000000011", // TODO: replace
-      aludToken:        "0x0000000000000000000000000000000000000012", // TODO: replace
-      priceFeed:        "0x0000000000000000000000000000000000000013", // TODO: replace
-    },
-  },
   eloqura: {
     id: "eloqura",
     name: "Eloqura",
@@ -70,6 +55,21 @@ export const PROTOCOLS: Record<ProtocolId, ProtocolConfig> = {
       routerV3:         "0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E", // Uniswap V3
       factoryV3:        "0x0227628f3F023bb0B980b67D528571c95c6DaC1c", // Uniswap V3
       quoterV3:         "0xEd1f6473345F45b75F8179591dd5bA1888cf2FB3", // Uniswap V3
+    },
+  },
+  alluria: {
+    id: "alluria",
+    name: "Alluria",
+    shortName: "ALUR",
+    color: "#834841",
+    icon: "🏦",
+    logo: "https://pub-37d61a7eb7ae45898b46702664710cb2.r2.dev/ALUR.png",
+    description: "Lending protocol — ETH-collateralized vaults, ALUD stablecoin minting, liquidations",
+    contracts: {
+      vaultManager:     "0x0000000000000000000000000000000000000010", // TODO: replace
+      stabilityPool:    "0x0000000000000000000000000000000000000011", // TODO: replace
+      aludToken:        "0x0000000000000000000000000000000000000012", // TODO: replace
+      priceFeed:        "0x0000000000000000000000000000000000000013", // TODO: replace
     },
   },
   artivya: {
