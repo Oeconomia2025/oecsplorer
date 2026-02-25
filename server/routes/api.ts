@@ -78,7 +78,7 @@ const PRICE_TOKENS: Record<string, { symbol: string; decimals: number }> = {
   "0x779877a7b0d9e8603169ddbd7836e478b4624789": { symbol: "LINK", decimals: 18 },
   "0xfff9976782d46cc05630d1f6ebab18b2324d6b14": { symbol: "WETH", decimals: 18 },
   "0x34b11f6b8f78fa010bbca71bc7fe79daa811b89f": { symbol: "WETH", decimals: 18 },
-  "0x2b2fb8df4ac5d394f0d5674d7a54802e42a06aba": { symbol: "OEC", decimals: 18 },
+  "0x00904218319a045a96d776ec6a970f54741208e6": { symbol: "OEC", decimals: 18 },
   "0x4feb15d0644e5c7bb64dcd85744f0f2ab5f7a253": { symbol: "ELOQ", decimals: 18 },
 };
 

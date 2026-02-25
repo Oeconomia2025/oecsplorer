@@ -34,8 +34,8 @@ export const PROTOCOLS: Record<ProtocolId, ProtocolConfig> = {
     logo: "https://pub-37d61a7eb7ae45898b46702664710cb2.r2.dev/images/OEC%20Logo.png",
     description: "Governance hub — Guardian staking, proposals, treasury, cross-protocol coordination",
     contracts: {
-      oecToken:         "0x2b2fb8df4ac5d394f0d5674d7a54802e42a06aba",
-      guardianStaking:  "0x4a4da37c9a9f421efe3feb527fc16802ce756ec3",
+      oecToken:         "0x00904218319a045a96d776ec6a970f54741208e6",
+      guardianStaking:  "0xd12664c1f09fa1561b5f952259d1eb5555af3265",
       faucet:           "0x2e490a627c67b9e70cace4905348395559ef3411",
     },
   },
@@ -121,7 +121,7 @@ export const TOKENS: TokenConfig[] = [
   {
     symbol: "OEC",
     name: "Oeconomia",
-    address: "0x2b2fb8df4ac5d394f0d5674d7a54802e42a06aba",
+    address: "0x00904218319a045a96d776ec6a970f54741208e6",
     decimals: 18,
     protocol: "oeconomia",
     color: "#da1cfe",

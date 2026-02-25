@@ -561,7 +561,7 @@ export default function ERC20Content() {
 
             <div className="tk101-data-block">
               <div className="tk101-data-section-label">Oeconomia Token Contracts (Sepolia)</div>
-              <div className="tk101-data-row"><span className="tk101-data-label">OEC Token</span><span className="tk101-data-value cyan">0x2b2fb8df4ac5d394f0d5674d7a54802e42a06aba</span></div>
+              <div className="tk101-data-row"><span className="tk101-data-label">OEC Token</span><span className="tk101-data-value cyan">0x00904218319a045a96d776ec6a970f54741208e6</span></div>
               <div className="tk101-data-row"><span className="tk101-data-label">OEC Decimals</span><span className="tk101-data-value">18</span></div>
               <div className="tk101-data-row"><span className="tk101-data-label">OEC Role</span><span className="tk101-data-value purple">Governance + Staking + Utility</span></div>
               <div className="tk101-data-row"><span className="tk101-data-label">ELOQ Token</span><span className="tk101-data-value cyan">Eloqura protocol token</span></div>

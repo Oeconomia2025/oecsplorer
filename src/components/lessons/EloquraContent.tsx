@@ -517,7 +517,7 @@ export default function EloquraContent() {
               <div className="el101-data-row"><span className="el101-data-label">Router</span><span className="el101-data-value cyan">0x3f42823d998EE4759a95a42a6e3bB7736B76A7AE</span></div>
               <div className="el101-data-row"><span className="el101-data-label">Eloqura WETH</span><span className="el101-data-value">0x34b11F6b8f78fa010bBCA71bC7FE79dAa811b89f</span></div>
               <div className="el101-data-row"><span className="el101-data-label">Uniswap WETH</span><span className="el101-data-value">0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14</span></div>
-              <div className="el101-data-row"><span className="el101-data-label">OEC Token</span><span className="el101-data-value purple">0x2b2fb8df4ac5d394f0d5674d7a54802e42a06aba</span></div>
+              <div className="el101-data-row"><span className="el101-data-label">OEC Token</span><span className="el101-data-value purple">0x00904218319a045a96d776ec6a970f54741208e6</span></div>
             </div>
 
             <div className="el101-info-box green">

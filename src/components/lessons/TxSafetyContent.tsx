@@ -294,7 +294,7 @@ export default function TxSafetyContent() {
 
             <div className="ts101-data-block">
               <div className="ts101-data-section-label">Oeconomia Verified Contract Addresses (Sepolia)</div>
-              <div className="ts101-data-row"><span className="ts101-data-label">OEC Token</span><span className="ts101-data-value cyan">0x2b2fb8df4ac5d394f0d5674d7a54802e42a06aba</span></div>
+              <div className="ts101-data-row"><span className="ts101-data-label">OEC Token</span><span className="ts101-data-value cyan">0x00904218319a045a96d776ec6a970f54741208e6</span></div>
               <div className="ts101-data-row"><span className="ts101-data-label">Eloqura Factory</span><span className="ts101-data-value cyan">0x1a4C7849Dd8f62AefA082360b3A8D857952B3b8e</span></div>
               <div className="ts101-data-row"><span className="ts101-data-label">Eloqura Router</span><span className="ts101-data-value cyan">0x3f42823d998EE4759a95a42a6e3bB7736B76A7AE</span></div>
               <div className="ts101-data-row"><span className="ts101-data-label">USDC</span><span className="ts101-data-value cyan">0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238</span></div>
