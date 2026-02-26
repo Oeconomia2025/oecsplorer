@@ -37,6 +37,7 @@ export const PROTOCOLS: Record<ProtocolId, ProtocolConfig> = {
       oecToken:         "0x00904218319a045a96d776ec6a970f54741208e6",
       guardianStaking:  "0xd12664c1f09fa1561b5f952259d1eb5555af3265",
       faucet:           "0x29c900b48079634e5b1e19508fa347340ee786bb",
+      achievements:     "0xbb0805254d328d1a542efb197b3a922c3fd97063",
     },
   },
   eloqura: {
