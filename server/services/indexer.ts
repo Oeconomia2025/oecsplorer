@@ -118,32 +118,38 @@ export function setIndexerBroadcast(fn: (event: string, data: unknown) => void) 
 export async function startIndexer() {
   console.log("[Indexer] Starting polling indexer");
 
-  // Determine where to start: check DB for last indexed block
-  try {
-    const lastBlock = await prisma.indexedBlock.findFirst({
-      orderBy: { blockNumber: "desc" },
-    });
-    if (lastBlock) {
-      lastIndexedBlock = Number(lastBlock.blockNumber);
-      console.log(`[Indexer] Resuming from IndexedBlock: block ${lastIndexedBlock}`);
-    } else {
-      // IndexedBlock empty — fall back to latest Transaction blockNumber
-      const lastTx = await prisma.transaction.findFirst({
+  // Determine where to start: check for env override first
+  const envStartBlock = process.env.INDEXER_START_BLOCK;
+  if (envStartBlock) {
+    lastIndexedBlock = parseInt(envStartBlock, 10);
+    console.log(`[Indexer] Using INDEXER_START_BLOCK override: block ${lastIndexedBlock}`);
+  } else {
+    try {
+      const lastBlock = await prisma.indexedBlock.findFirst({
         orderBy: { blockNumber: "desc" },
-        select: { blockNumber: true },
       });
-      if (lastTx) {
-        lastIndexedBlock = Number(lastTx.blockNumber);
-        console.log(`[Indexer] No IndexedBlock history — resuming from latest tx block ${lastIndexedBlock}`);
+      if (lastBlock) {
+        lastIndexedBlock = Number(lastBlock.blockNumber);
+        console.log(`[Indexer] Resuming from IndexedBlock: block ${lastIndexedBlock}`);
       } else {
-        // Truly empty DB — start from current block
-        lastIndexedBlock = await getLatestBlockNumber();
-        console.log(`[Indexer] Empty database — starting from current block ${lastIndexedBlock}`);
+        // IndexedBlock empty — fall back to latest Transaction blockNumber
+        const lastTx = await prisma.transaction.findFirst({
+          orderBy: { blockNumber: "desc" },
+          select: { blockNumber: true },
+        });
+        if (lastTx) {
+          lastIndexedBlock = Number(lastTx.blockNumber);
+          console.log(`[Indexer] No IndexedBlock history — resuming from latest tx block ${lastIndexedBlock}`);
+        } else {
+          // Truly empty DB — start from current block
+          lastIndexedBlock = await getLatestBlockNumber();
+          console.log(`[Indexer] Empty database — starting from current block ${lastIndexedBlock}`);
+        }
       }
+    } catch (err) {
+      console.error("[Indexer] Error reading last indexed block, starting from latest:", err);
+      lastIndexedBlock = await getLatestBlockNumber();
     }
-  } catch (err) {
-    console.error("[Indexer] Error reading last indexed block, starting from latest:", err);
-    lastIndexedBlock = await getLatestBlockNumber();
   }
 
   // Run once immediately, then schedule

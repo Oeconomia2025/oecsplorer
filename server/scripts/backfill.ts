@@ -97,6 +97,132 @@ async function main() {
     totalSkipped += outboundCount.skipped;
   }
 
+  // ── Phase 2: getLogs-based scan for token contracts ──────────────────
+  // getAssetTransfers misses txs where users call transfer() ON a token
+  // contract (the asset moves between wallets, not to/from the contract).
+  // getLogs catches all events emitted BY the contract.
+  console.log("\n--- Phase 2: getLogs scan for token/protocol contracts ---");
+
+  // Alchemy free tier limits getLogs — use small chunks
+  // Only scan recent blocks (Alluria contracts were deployed very recently)
+  const GETLOGS_CHUNK = 10; // Alchemy free tier max
+  const GETLOGS_START = Math.max(startBlock, latestBlock - 1000); // last ~1000 blocks
+  const allExclusive = getExclusiveContractAddresses().filter(
+    (addr) => !addr.startsWith("0x000000000000000000000000000000000000")
+  );
+
+  console.log(`  Scanning blocks ${GETLOGS_START}-${latestBlock} (${latestBlock - GETLOGS_START} blocks) in ${GETLOGS_CHUNK}-block chunks`);
+
+  for (let chunkStart = GETLOGS_START; chunkStart <= latestBlock; chunkStart += GETLOGS_CHUNK) {
+    const chunkEnd = Math.min(chunkStart + GETLOGS_CHUNK - 1, latestBlock);
+    let logs: any[];
+    try {
+      logs = await alchemy.core.getLogs({
+        address: allExclusive,
+        fromBlock: chunkStart,
+        toBlock: chunkEnd,
+      });
+    } catch (err) {
+      console.log(`  getLogs chunk ${chunkStart}-${chunkEnd}: ${err instanceof Error ? err.message : err}`);
+      continue;
+    }
+
+    if (logs.length === 0) continue;
+
+    const txHashes = [...new Set(logs.map((l: any) => l.transactionHash as string))];
+    let chunkStored = 0;
+    console.log(`  blocks ${chunkStart}-${chunkEnd}: ${logs.length} logs, ${txHashes.length} unique txs`);
+
+    for (const txHash of txHashes) {
+      const existing = await prisma.transaction.findUnique({ where: { txHash } });
+      if (existing) {
+        console.log(`    ${txHash.slice(0, 14)}: already in DB, skipping`);
+        continue;
+      }
+
+      let fullTx;
+      try {
+        const [tx, receipt] = await Promise.all([
+          alchemy.core.getTransaction(txHash),
+          alchemy.core.getTransactionReceipt(txHash),
+        ]);
+        if (!tx || !receipt) continue;
+        fullTx = {
+          hash: tx.hash,
+          from: tx.from,
+          to: tx.to || "",
+          value: tx.value.toString(),
+          input: tx.data,
+          gasPrice: tx.gasPrice?.toString() || "0",
+          gasUsed: receipt.gasUsed.toString(),
+          blockNumber: receipt.blockNumber,
+          status: receipt.status === 1,
+          logs: receipt.logs.map((log) => ({
+            address: log.address,
+            topics: log.topics as string[],
+            data: log.data,
+          })),
+        };
+      } catch {
+        continue;
+      }
+
+      const decoded = decoder.isOeconomiaContract(fullTx.to)
+        ? decoder.decode({
+            to: fullTx.to,
+            input: fullTx.input,
+            value: fullTx.value,
+            logs: fullTx.logs,
+          })
+        : null;
+
+      if (!decoded || decoded.protocol === "unknown") {
+        console.log(`    ${txHash.slice(0, 14)}: decode failed (isOec=${decoder.isOeconomiaContract(fullTx.to)}, to=${fullTx.to.slice(0, 14)}, decoded=${decoded?.protocol})`);
+        continue;
+      }
+      console.log(`    ${txHash.slice(0, 14)}: decoded as ${decoded.protocol} / ${decoded.actionType}`);
+
+      // Get block timestamp
+      let blockTimestamp = new Date();
+      try {
+        const block = await alchemy.core.getBlock(fullTx.blockNumber);
+        if (block) blockTimestamp = new Date(block.timestamp * 1000);
+      } catch {}
+
+      try {
+        await prisma.transaction.upsert({
+          where: { txHash },
+          create: {
+            txHash,
+            blockNumber: BigInt(fullTx.blockNumber),
+            blockTimestamp,
+            fromAddress: fullTx.from.toLowerCase(),
+            toAddress: fullTx.to.toLowerCase(),
+            valueWei: fullTx.value,
+            gasUsed: BigInt(fullTx.gasUsed),
+            gasPrice: fullTx.gasPrice,
+            status: fullTx.status,
+            protocol: decoded.protocol,
+            actionType: decoded.actionType,
+            functionName: decoded.functionName || null,
+            decodedData: decoded
+              ? sanitizeForJson({ args: decoded.decodedArgs, events: decoded.decodedEvents })
+              : null,
+          },
+          update: {},
+        });
+        chunkStored++;
+        totalStored++;
+      } catch (err) {
+        console.error(`  DB error for ${txHash.slice(0, 12)}...:`, err instanceof Error ? err.message : err);
+      }
+    }
+
+    if (chunkStored > 0) {
+      console.log(`  blocks ${chunkStart}-${chunkEnd}: ${chunkStored} new transactions stored`);
+    }
+  }
+
   console.log("\n==============================================");
   console.log(`  BACKFILL COMPLETE`);
   console.log(`  Stored:  ${totalStored} transactions`);
