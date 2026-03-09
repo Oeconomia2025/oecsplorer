@@ -88,10 +88,10 @@ export default function ProtocolPage() {
         <div className="space-y-2">
           {contracts.map(([label, address]) => {
             const isDeployed = !address.startsWith("0x00000");
-            return (
+            const row = (
               <div
                 key={label}
-                className="flex items-center justify-between p-4 rounded-xl border border-bd-primary bg-th-surface hover:border-bd-secondary transition-colors"
+                className={`flex items-center justify-between p-4 rounded-xl border border-bd-primary bg-th-surface hover:border-bd-secondary transition-colors${isDeployed ? " cursor-pointer" : ""}`}
               >
                 <div className="flex items-center gap-4">
                   <div
@@ -110,12 +110,20 @@ export default function ProtocolPage() {
                     href={etherscanLink("address", address, CHAIN_ID)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs text-accent-link hover:text-accent-link-hover shrink-0"
+                    className="text-xs text-tx-muted hover:text-accent-link shrink-0"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     Etherscan →
                   </a>
                 )}
               </div>
+            );
+            return isDeployed ? (
+              <Link key={label} to={`/address/${address}`} className="block">
+                {row}
+              </Link>
+            ) : (
+              <div key={label}>{row}</div>
             );
           })}
         </div>

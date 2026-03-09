@@ -67,10 +67,14 @@ export const PROTOCOLS: Record<ProtocolId, ProtocolConfig> = {
     logo: "https://pub-37d61a7eb7ae45898b46702664710cb2.r2.dev/ALUR.png",
     description: "Lending protocol — ETH-collateralized vaults, ALUD stablecoin minting, liquidations",
     contracts: {
-      vaultManager:     "0x0000000000000000000000000000000000000010", // TODO: replace
-      stabilityPool:    "0x0000000000000000000000000000000000000011", // TODO: replace
-      aludToken:        "0x0000000000000000000000000000000000000012", // TODO: replace
-      priceFeed:        "0x0000000000000000000000000000000000000013", // TODO: replace
+      alurToken:        "0x5cdBed8ED63554FDE6653F02ae1c4d6d5ae71aD3",
+      troveManager:     "0x90CCA7d8B6cAb91d53e384E3c0cD3Ba34b7B8Cc2",
+      stabilityPool:    "0xB61a71C78e10C0C92e2dFF457C9F87dC71260c43",
+      aludToken:        "0x41B07704b9d671615A3E9f83c06D85CB38bbf4D9",
+      priceFeed:        "0x79A91c7659AA69A5F8722aB3786D44D367ADEeFe",
+      collateralManager:"0x6423C894371992594a7fE8e2e0E65BEF4EE5cABb",
+      emissionsVault:   "0x3b62AF3344830690770156033D127dE7186Cd9a1",
+      aluriaLens:       "0x150485AC97153Ac772D43736564ccf7122d92bcf",
     },
   },
   artivya: {
@@ -185,23 +189,23 @@ export const TOKENS: TokenConfig[] = [
     logo: "https://assets.coingecko.com/coins/images/28452/standard/ARUsPeNQ_400x400.jpeg",
   },
   {
-    symbol: "ALUD",
-    name: "Alluria Dollar",
-    address: "0x0000000000000000000000000000000000000012", // Not yet deployed
-    decimals: 18,
-    protocol: "alluria",
-    color: "#834841",
-    logo: "https://pub-37d61a7eb7ae45898b46702664710cb2.r2.dev/ALUD.png",
-    official: true,
-  },
-  {
     symbol: "ALUR",
     name: "Alluria Reward",
-    address: "0x0000000000000000000000000000000000000014", // Not yet deployed
+    address: "0x5cdBed8ED63554FDE6653F02ae1c4d6d5ae71aD3",
     decimals: 18,
     protocol: "alluria",
     color: "#834841",
     logo: "https://pub-37d61a7eb7ae45898b46702664710cb2.r2.dev/ALUR.png",
+    official: true,
+  },
+  {
+    symbol: "ALUD",
+    name: "Alluria Dollar",
+    address: "0x41B07704b9d671615A3E9f83c06D85CB38bbf4D9",
+    decimals: 18,
+    protocol: "alluria",
+    color: "#834841",
+    logo: "https://pub-37d61a7eb7ae45898b46702664710cb2.r2.dev/ALUD.png",
     official: true,
   },
   {
