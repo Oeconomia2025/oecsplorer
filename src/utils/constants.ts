@@ -64,7 +64,7 @@ export const PROTOCOLS: Record<ProtocolId, ProtocolConfig> = {
     shortName: "ALUR",
     color: "#834841",
     icon: "🏦",
-    logo: "https://pub-37d61a7eb7ae45898b46702664710cb2.r2.dev/ALUR.png",
+    logo: "https://pub-37d61a7eb7ae45898b46702664710cb2.r2.dev/With%20Border/ALUR%20no%20Border.png",
     description: "Lending protocol — ETH-collateralized vaults, ALUD stablecoin minting, liquidations",
     contracts: {
       alurToken:        "0x5cdBed8ED63554FDE6653F02ae1c4d6d5ae71aD3",
@@ -195,7 +195,7 @@ export const TOKENS: TokenConfig[] = [
     decimals: 18,
     protocol: "alluria",
     color: "#834841",
-    logo: "https://pub-37d61a7eb7ae45898b46702664710cb2.r2.dev/ALUR.png",
+    logo: "https://pub-37d61a7eb7ae45898b46702664710cb2.r2.dev/With%20Border/ALUR%20no%20Border.png",
     official: true,
   },
   {

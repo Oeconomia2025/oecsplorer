@@ -742,14 +742,39 @@ router.get("/protocol/:protocolId/transactions", async (req: Request, res: Respo
     const take = Math.min(parseInt(limit as string, 10) || 50, 200);
     const skip = parseInt(offset as string, 10) || 0;
 
+    // Get token contract addresses for this protocol (for cross-protocol token transfer matching)
+    const protocolConfig = PROTOCOLS[protocolId as keyof typeof PROTOCOLS];
+    const protocolTokenAddresses = protocolConfig
+      ? Object.values(protocolConfig.contracts).map((a: string) => a.toLowerCase())
+      : [];
+
+    // Match transactions that are EITHER:
+    // 1. Directly attributed to this protocol, OR
+    // 2. Have token transfers involving this protocol's contracts (e.g., ALUR liquidity on Eloqura)
+    const where = {
+      OR: [
+        { protocol: protocolId },
+        ...(protocolTokenAddresses.length > 0
+          ? [{
+              tokenTransfers: {
+                some: {
+                  tokenAddress: { in: protocolTokenAddresses, mode: 'insensitive' as const },
+                },
+              },
+            }]
+          : []),
+      ],
+    };
+
     const [transactions, total] = await Promise.all([
       prisma.transaction.findMany({
-        where: { protocol: protocolId },
+        where,
         orderBy: { blockTimestamp: "desc" },
+        include: { tokenTransfers: true },
         take,
         skip,
       }),
-      prisma.transaction.count({ where: { protocol: protocolId } }),
+      prisma.transaction.count({ where }),
     ]);
 
     res.json({

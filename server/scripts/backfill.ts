@@ -97,6 +97,93 @@ async function main() {
     totalSkipped += outboundCount.skipped;
   }
 
+  // ── Phase 1.5: Token contract transfer events ─────────────────────
+  // getAssetTransfers with contractAddresses catches ERC20 Transfer events
+  // emitted by our token contracts (even when the tx target is a different contract)
+  console.log("\n--- Phase 1.5: ERC20 Transfer events by contract ---");
+  for (const contractAddr of contractAddresses) {
+    const protocol = addressMap[contractAddr.toLowerCase()] || "unknown";
+    let pageKey: string | undefined;
+    let stored = 0;
+    let skipped = 0;
+    let page = 1;
+    do {
+      try {
+        const result = await alchemy.core.getAssetTransfers({
+          fromBlock: `0x${startBlock.toString(16)}`,
+          toBlock: `0x${latestBlock.toString(16)}`,
+          contractAddresses: [contractAddr],
+          category: [AssetTransfersCategory.ERC20],
+          withMetadata: true,
+          maxCount: 100,
+          pageKey,
+          order: "asc",
+        });
+        const transfers = result.transfers;
+        pageKey = result.pageKey;
+        if (transfers.length === 0 && page === 1) break;
+        if (page === 1) console.log(`  ${protocol} ${contractAddr.slice(0, 10)}...: page ${page} (${transfers.length} transfers)`);
+
+        for (const transfer of transfers) {
+          const txHash = transfer.hash;
+          if (!txHash) continue;
+          const existing = await prisma.transaction.findUnique({ where: { txHash } });
+          if (existing) { skipped++; continue; }
+
+          let fullTx;
+          try {
+            const [tx, receipt] = await Promise.all([
+              alchemy.core.getTransaction(txHash),
+              alchemy.core.getTransactionReceipt(txHash),
+            ]);
+            if (!tx || !receipt) continue;
+            fullTx = {
+              hash: tx.hash, from: tx.from, to: tx.to || "",
+              value: tx.value.toString(), input: tx.data,
+              gasPrice: tx.gasPrice?.toString() || "0",
+              gasUsed: receipt.gasUsed.toString(),
+              blockNumber: receipt.blockNumber, status: receipt.status === 1,
+              logs: receipt.logs.map((log) => ({ address: log.address, topics: log.topics as string[], data: log.data })),
+            };
+          } catch { continue; }
+
+          // Decode — try the tx target first, then fall back to the contract we're scanning
+          const decoded = decoder.isOeconomiaContract(fullTx.to)
+            ? decoder.decode({ to: fullTx.to, input: fullTx.input, value: fullTx.value, logs: fullTx.logs })
+            : null;
+          const txProtocol = (decoded && decoded.protocol !== "unknown") ? decoded.protocol : protocol;
+          const actionType = (decoded && decoded.protocol !== "unknown") ? decoded.actionType : "Token Transfer";
+          const functionName = (decoded && decoded.protocol !== "unknown") ? decoded.functionName : null;
+          const blockTimestamp = transfer.metadata?.blockTimestamp ? new Date(transfer.metadata.blockTimestamp) : new Date();
+
+          try {
+            await prisma.transaction.upsert({
+              where: { txHash },
+              create: {
+                txHash, blockNumber: BigInt(fullTx.blockNumber), blockTimestamp,
+                fromAddress: fullTx.from.toLowerCase(), toAddress: fullTx.to.toLowerCase(),
+                valueWei: fullTx.value, gasUsed: BigInt(fullTx.gasUsed), gasPrice: fullTx.gasPrice,
+                status: fullTx.status, protocol: txProtocol, actionType, functionName,
+                decodedData: decoded ? sanitizeForJson({ args: decoded.decodedArgs, events: decoded.decodedEvents }) : null,
+              },
+              update: {},
+            });
+            stored++;
+            totalStored++;
+          } catch (err) {
+            console.error(`  DB error for ${txHash.slice(0, 12)}...:`, err instanceof Error ? err.message : err);
+          }
+        }
+        if (pageKey) page++;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        if (!msg.includes("No transactions found")) console.error(`  Error: ${msg}`);
+        break;
+      }
+    } while (pageKey);
+    if (stored > 0 || skipped > 0) console.log(`  ${protocol} ${contractAddr.slice(0, 10)}...: ${stored} stored, ${skipped} skipped`);
+  }
+
   // ── Phase 2: getLogs-based scan for token contracts ──────────────────
   // getAssetTransfers misses txs where users call transfer() ON a token
   // contract (the asset moves between wallets, not to/from the contract).
@@ -106,7 +193,7 @@ async function main() {
   // Alchemy free tier limits getLogs — use small chunks
   // Only scan recent blocks (Alluria contracts were deployed very recently)
   const GETLOGS_CHUNK = 10; // Alchemy free tier max
-  const GETLOGS_START = Math.max(startBlock, latestBlock - 1000); // last ~1000 blocks
+  const GETLOGS_START = startBlock; // scan full 30-day range
   const allExclusive = getExclusiveContractAddresses().filter(
     (addr) => !addr.startsWith("0x000000000000000000000000000000000000")
   );
@@ -254,6 +341,7 @@ async function fetchAndStoreTransfers(
         toBlock: `0x${endBlock.toString(16)}`,
         category: [
           AssetTransfersCategory.EXTERNAL,
+          AssetTransfersCategory.INTERNAL,
           AssetTransfersCategory.ERC20,
           AssetTransfersCategory.ERC721,
         ],
