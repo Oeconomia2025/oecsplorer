@@ -44,6 +44,18 @@ for (const [addr, protocol] of Object.entries(addressMap)) {
 }
 const decoder = new ProtocolDecoder(decoderMap);
 
+// ── Oeconomia address set (for filtering external token transfers) ──
+// Only show transfers involving Oeconomia contracts for non-official tokens
+const oeconomiaAddresses = new Set(
+  getAllContractAddresses()
+    .filter((a) => !a.startsWith("0x000000000000000000000000000000000000"))
+    .map((a) => a.toLowerCase())
+);
+
+function isOeconomiaAddress(addr: string): boolean {
+  return oeconomiaAddresses.has(addr.toLowerCase());
+}
+
 // ── In-memory Cache (reduces Alchemy CU usage) ───────────────
 
 const apiCache = new Map<string, { data: unknown; expiresAt: number }>();
@@ -1023,12 +1035,16 @@ router.get("/tokens/:address", async (req: Request, res: Response) => {
       (t) => t.address.toLowerCase() === address.toLowerCase()
     );
 
+    // For external tokens (USDC, LINK, etc.), only show transfers involving
+    // Oeconomia contracts. Official tokens show all transfers.
+    const isOfficial = oecToken?.official === true;
+
     // Fetch transfers via Alchemy getAssetTransfers (covers full history)
     const [alchemyTransfers, uniqueAddresses] = await Promise.all([
       getAssetTransfers({
         contractAddresses: [address],
         category: [AssetTransfersCategory.ERC20],
-        maxCount: 50,
+        maxCount: isOfficial ? 50 : 200, // fetch more for external tokens (most will be filtered out)
       }),
       prisma.$queryRaw<[{ count: bigint }]>`
         SELECT COUNT(DISTINCT addr) as count FROM (
@@ -1039,8 +1055,15 @@ router.get("/tokens/:address", async (req: Request, res: Response) => {
       `,
     ]);
 
+    // Filter external tokens to only Oeconomia-related transfers
+    const relevantTransfers = isOfficial
+      ? alchemyTransfers.transfers
+      : alchemyTransfers.transfers.filter((t: any) =>
+          isOeconomiaAddress(t.from || "") || isOeconomiaAddress(t.to || "")
+        );
+
     // Look up decoded actions from indexed DB transactions
-    const txHashes = alchemyTransfers.transfers.map((t: any) => t.hash as string);
+    const txHashes = relevantTransfers.map((t: any) => t.hash as string);
     const indexedTxs = txHashes.length > 0
       ? await prisma.transaction.findMany({
           where: { txHash: { in: txHashes } },
@@ -1050,7 +1073,7 @@ router.get("/tokens/:address", async (req: Request, res: Response) => {
     const actionMap = new Map(indexedTxs.map((t) => [t.txHash.toLowerCase(), t.actionType]));
 
     const ZERO = "0x0000000000000000000000000000000000000000";
-    const transfers = alchemyTransfers.transfers.map((t: any) => {
+    const transfers = relevantTransfers.map((t: any) => {
       const from = t.from || "";
       const to = t.to || "";
       // Use indexed action if available, otherwise derive from transfer
@@ -1226,15 +1249,29 @@ router.get("/tokens/:address/events", async (req: Request, res: Response) => {
     const cached = getCached(cacheKey);
     if (cached) return res.json(cached);
 
+    // For external tokens (USDC, LINK, etc.), only show events involving
+    // Oeconomia contracts. Official tokens show all events.
+    const oecToken = TOKENS.find(
+      (t) => t.address.toLowerCase() === address.toLowerCase()
+    );
+    const isOfficial = oecToken?.official === true;
+
     // Use getAssetTransfers (Enhanced API, no block-range limits on free tier)
     // to get full transfer event history for this token
     const result = await getAssetTransfers({
       contractAddresses: [address],
       category: [AssetTransfersCategory.ERC20],
-      maxCount: 100,
+      maxCount: isOfficial ? 100 : 200, // fetch more for external tokens (most will be filtered out)
     });
 
-    const events = result.transfers.map((t: any) => {
+    // Filter external tokens to only Oeconomia-related transfers
+    const relevantTransfers = isOfficial
+      ? result.transfers
+      : result.transfers.filter((t: any) =>
+          isOeconomiaAddress(t.from || "") || isOeconomiaAddress(t.to || "")
+        );
+
+    const events = relevantTransfers.map((t: any) => {
       const rawValue = t.rawContract?.value || "0";
       let decimalValue: string;
       try {
