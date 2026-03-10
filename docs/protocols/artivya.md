@@ -27,7 +27,7 @@ A hybrid trading platform combining an order book with AMM liquidity, plus an in
 
 Artivya combines two execution models:
 
-* **Order Book** — Traditional limit orders with price-time priority matching
-* **AMM Liquidity** — Automated market maker pools that provide baseline liquidity
+* **Order Book**: Traditional limit orders with price-time priority matching
+* **AMM Liquidity**: Automated market maker pools that provide baseline liquidity
 
 Orders can be filled from either source, with the router selecting the best execution path based on price and available liquidity.

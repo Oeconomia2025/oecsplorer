@@ -52,7 +52,7 @@ Runs every **5 minutes**, scanning for new `eth_getLogs` events across all exclu
 
 ### 2. Alchemy Webhooks
 
-Receives real-time notifications from Alchemy Notify when monitored addresses are involved in transactions. Processes instantly — decode, store, broadcast. This is the fastest ingestion path.
+Receives real-time notifications from Alchemy Notify when monitored addresses are involved in transactions. Processes instantly: decode, store, broadcast. This is the fastest ingestion path.
 
 ### 3. Site-Triggered Tracking
 

@@ -36,7 +36,7 @@ Returns paginated transaction history for an address, fetched from Alchemy's `ge
 
 | Parameter   | Type   | Description                         |
 | ----------- | ------ | ----------------------------------- |
-| `direction` | string | `"from"` or `"to"` — filter by sender or recipient |
+| `direction` | string | `"from"` or `"to"`: filter by sender or recipient |
 | `pageKey`   | string | Alchemy pagination cursor for next page |
 
 **Response:**

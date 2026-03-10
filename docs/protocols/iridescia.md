@@ -1,6 +1,6 @@
 # Iridescia Protocol
 
-Developer infrastructure for the ecosystem — a contract factory, template registry, and security modules for safe contract deployment.
+Developer infrastructure for the ecosystem: a contract factory, template registry, and security modules for safe contract deployment.
 
 ## Decoded Actions
 
@@ -23,7 +23,7 @@ Developer infrastructure for the ecosystem — a contract factory, template regi
 
 ### Contract Factory
 
-A permissionless factory that deploys pre-audited contract templates. Users select a template, configure parameters, and deploy — no Solidity knowledge required.
+A permissionless factory that deploys pre-audited contract templates. Users select a template, configure parameters, and deploy: no Solidity knowledge required.
 
 ### Template Registry
 

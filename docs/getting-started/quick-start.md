@@ -67,9 +67,9 @@ npm run backfill
 
 The backfill runs in three phases:
 
-1. **Phase 1** — `getAssetTransfers` for each contract (inbound + outbound)
-2. **Phase 1.5** — `contractAddresses` filter for cross-contract token transfers
-3. **Phase 2** — `eth_getLogs` scan in 10-block chunks
+1. **Phase 1**: `getAssetTransfers` for each contract (inbound + outbound)
+2. **Phase 1.5**: `contractAddresses` filter for cross-contract token transfers
+3. **Phase 2**: `eth_getLogs` scan in 10-block chunks
 
 {% hint style="warning" %}
 Phase 2 is very slow on Alchemy's free tier (limited to 10-block ranges). For production backfills, consider upgrading to PAYG.

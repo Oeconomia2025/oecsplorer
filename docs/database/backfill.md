@@ -16,23 +16,23 @@ DATABASE_URL="postgresql://..." npx tsx server/scripts/backfill.ts
 
 ## Phases
 
-### Phase 1 — Asset Transfers
+### Phase 1: Asset Transfers
 
 Uses Alchemy's `getAssetTransfers` API to find inbound and outbound transfers for each protocol contract address.
 
 **Categories scanned:**
-* `EXTERNAL` — ETH transfers
-* `INTERNAL` — Internal contract calls
-* `ERC20` — ERC-20 token transfers
-* `ERC721` — NFT transfers
+* `EXTERNAL`: ETH transfers
+* `INTERNAL`: Internal contract calls
+* `ERC20`: ERC-20 token transfers
+* `ERC721`: NFT transfers
 
 For each transfer found, the script fetches the full transaction + receipt, decodes it, and stores it in the database.
 
-### Phase 1.5 — Contract Token Transfers
+### Phase 1.5: Contract Token Transfers
 
 Uses `getAssetTransfers` with the `contractAddresses` filter to find ERC-20 Transfer events emitted **by** protocol token contracts, even when the transaction target is a different contract.
 
-This catches cases like ALUR tokens being transferred during an Eloqura liquidity operation — the transaction `to` is the Eloqura Router, but the ALUR token contract emits a Transfer event.
+This catches cases like ALUR tokens being transferred during an Eloqura liquidity operation: the transaction `to` is the Eloqura Router, but the ALUR token contract emits a Transfer event.
 
 ```typescript
 const result = await alchemy.core.getAssetTransfers({
@@ -42,7 +42,7 @@ const result = await alchemy.core.getAssetTransfers({
 });
 ```
 
-### Phase 2 — getLogs Scan
+### Phase 2: getLogs Scan
 
 Scans `eth_getLogs` across all contract addresses for any events the previous phases might have missed.
 
@@ -56,7 +56,7 @@ The script reports progress as it runs:
 
 ```
 ==============================================
-  OECONOMIA EXPLORER — BACKFILL
+  OECONOMIA EXPLORER: BACKFILL
 ==============================================
 
 Latest block:     10414840
@@ -80,7 +80,7 @@ Done! Stored 184 new transactions (92 skipped as duplicates).
 
 ## Duplicate Handling
 
-The backfill is safe to run multiple times. Existing transactions are skipped via the unique `txHash` constraint — the script checks `findUnique({ where: { txHash } })` before attempting to store.
+The backfill is safe to run multiple times. Existing transactions are skipped via the unique `txHash` constraint: the script checks `findUnique({ where: { txHash } })` before attempting to store.
 
 ## Re-Decoding
 

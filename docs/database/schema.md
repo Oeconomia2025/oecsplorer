@@ -94,7 +94,7 @@ Per-wallet token balances updated by webhook Transfer events.
 
 ### IndexedBlocks
 
-Sync progress tracking — prevents reprocessing blocks.
+Sync progress tracking: prevents reprocessing blocks.
 
 ## Common Queries
 

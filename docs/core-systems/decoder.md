@@ -6,10 +6,10 @@ The heart of OECsplorer. The `ProtocolDecoder` class converts raw transaction ca
 
 ## How It Works
 
-1. **Address Lookup** — The `to` address is matched against the registered contract map to identify the protocol
-2. **Function Decoding** — Transaction `input` data is parsed using the protocol's ABI fragments via `ethers.Interface`
-3. **Event Decoding** — Receipt logs are decoded against the protocol ABI, with fallback to standard ERC-20 events
-4. **Action Classification** — The raw function name is mapped to a human-readable label via `ACTION_LABELS`
+1. **Address Lookup**: The `to` address is matched against the registered contract map to identify the protocol
+2. **Function Decoding**: Transaction `input` data is parsed using the protocol's ABI fragments via `ethers.Interface`
+3. **Event Decoding**: Receipt logs are decoded against the protocol ABI, with fallback to standard ERC-20 events
+4. **Action Classification**: The raw function name is mapped to a human-readable label via `ACTION_LABELS`
 
 ## Usage
 
@@ -58,14 +58,14 @@ If the primary ABI doesn't match the transaction data:
 
 ## ABI Fragments
 
-Each protocol registers ABI fragments for its known functions and events. The decoder only includes the function signatures needed — not the full contract ABI. This keeps the decoder lightweight and focused.
+Each protocol registers ABI fragments for its known functions and events. The decoder only includes the function signatures needed: not the full contract ABI. This keeps the decoder lightweight and focused.
 
 Protocols currently registered:
-* **Oeconomia** — MultiPoolStakingAPR (stake, unstake, vote, proposals)
-* **Alluria** — TroveManager, StabilityPool, EmissionsVault
-* **Eloqura** — Router V2 (all swap/liquidity variants), SwapRouter V3
-* **Artivya** — Exchange, OrderBook, NFT Marketplace
-* **Iridescia** — ContractFactory, TemplateRegistry
+* **Oeconomia**: MultiPoolStakingAPR (stake, unstake, vote, proposals)
+* **Alluria**: TroveManager, StabilityPool, EmissionsVault
+* **Eloqura**: Router V2 (all swap/liquidity variants), SwapRouter V3
+* **Artivya**: Exchange, OrderBook, NFT Marketplace
+* **Iridescia**: ContractFactory, TemplateRegistry
 
 {% hint style="warning" %}
 **BigInt Safety:** Always use `sanitizeForJson()` before storing decoded args in Prisma JSON fields. Raw BigInt values from ethers.js will crash Prisma.

@@ -54,6 +54,6 @@ Global cross-protocol statistics: total transactions, unique addresses, gas usag
 ### GET `/api/search?q=...`
 
 Smart search that auto-detects the query type:
-* **Transaction hash** (66 chars, starts with `0x`) — redirects to `/tx/:hash`
-* **Address** (42 chars, starts with `0x`) — redirects to `/address/:addr`
-* **Block number** (digits only) — redirects to `/block/:number`
+* **Transaction hash** (66 chars, starts with `0x`): redirects to `/tx/:hash`
+* **Address** (42 chars, starts with `0x`): redirects to `/address/:addr`
+* **Block number** (digits only): redirects to `/block/:number`

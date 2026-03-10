@@ -45,18 +45,18 @@ A decentralized lending protocol. Deposit WETH, WBTC, or LINK as collateral to m
 
 The PriceFeed contract operates in dual mode:
 
-* **Chainlink mode** — Reads `latestRoundData()` from Chainlink Sepolia aggregators and normalizes to 18 decimals
-* **Manual fallback** — Admin-set prices for assets without Chainlink coverage
+* **Chainlink mode**: Reads `latestRoundData()` from Chainlink Sepolia aggregators and normalizes to 18 decimals
+* **Manual fallback**: Admin-set prices for assets without Chainlink coverage
 
 Safety features:
-* **Staleness check** — Rejects prices older than 1 hour
-* **Max deviation** — 50% max change between updates prevents oracle manipulation
+* **Staleness check**: Rejects prices older than 1 hour
+* **Max deviation**: 50% max change between updates prevents oracle manipulation
 
 ## AluriaLens
 
 The AluriaLens contract provides read-only aggregated views for frontend consumption:
 
-* `getAllUserTroves(owner)` — Returns all trove positions for a wallet
-* `getUserStabilityPoolPosition(owner)` — Returns stability pool deposit + pending gains
-* `getCollateralStats(collateral)` — Returns aggregate stats per collateral type
-* `getSystemStats()` — Returns total TVL, ALUD supply, and collateral ratios
+* `getAllUserTroves(owner)`: Returns all trove positions for a wallet
+* `getUserStabilityPoolPosition(owner)`: Returns stability pool deposit + pending gains
+* `getCollateralStats(collateral)`: Returns aggregate stats per collateral type
+* `getSystemStats()`: Returns total TVL, ALUD supply, and collateral ratios

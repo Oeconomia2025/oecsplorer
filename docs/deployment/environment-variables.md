@@ -15,7 +15,7 @@ All configuration is managed through environment variables. Copy `.env.example` 
 | -------------------- | ------------------------- | ------------------------------------ |
 | `ALCHEMY_NETWORK`    | `ETH_SEPOLIA`             | Alchemy network identifier           |
 | `PORT`               | `3001`                    | Express server port                  |
-| `REDIS_URL`          | —                         | Redis URL for optional caching layer |
+| `REDIS_URL`          | -                         | Redis URL for optional caching layer |
 | `CLIENT_URL`         | `http://localhost:5173`   | Frontend URL (CORS origin)           |
 | `INDEXER_START_BLOCK` | auto                     | Override indexer start block number  |
 
@@ -58,4 +58,4 @@ VITE_WS_URL=http://localhost:3001
 
 * On Railway, set environment variables in the service's Variables tab
 * `DATABASE_URL` is automatically provided when you link a Railway PostgreSQL service
-* Never commit `.env` files to git — they're in `.gitignore`
+* Never commit `.env` files to git: they're in `.gitignore`

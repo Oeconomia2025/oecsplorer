@@ -76,8 +76,8 @@ The hook handles connection lifecycle, room joining/leaving, and maintains a loc
 
 Transactions are broadcast from two sources:
 
-1. **Polling Indexer** — Every 5 minutes when new transactions are found
-2. **Webhook Handler** — Instantly when Alchemy Notify delivers real-time events
+1. **Polling Indexer**: Every 5 minutes when new transactions are found
+2. **Webhook Handler**: Instantly when Alchemy Notify delivers real-time events
 
 Both sources use the same broadcast logic:
 

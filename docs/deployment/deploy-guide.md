@@ -45,7 +45,7 @@ The production server:
 2. Add a PostgreSQL database service
 3. Add a web service connected to the GitHub repository
 4. Set environment variables (see [Environment Variables](environment-variables.md))
-5. Deploy — Railway runs `npm install`, `npm run build`, then `npm start`
+5. Deploy: Railway runs `npm install`, `npm run build`, then `npm start`
 6. Run the backfill script to populate historical data:
    ```bash
    DATABASE_URL="postgresql://..." npx tsx server/scripts/backfill.ts
@@ -74,6 +74,6 @@ DATABASE_URL="postgresql://..." npx tsx server/scripts/redecode.ts
 
 ## Monitoring
 
-* **Railway Dashboard** — CPU, memory, request logs
-* **Alchemy Dashboard** — Compute unit usage, rate limit tracking
-* **Application Logs** — `console.error` statements in indexer and webhook handler
+* **Railway Dashboard**: CPU, memory, request logs
+* **Alchemy Dashboard**: Compute unit usage, rate limit tracking
+* **Application Logs**: `console.error` statements in indexer and webhook handler
