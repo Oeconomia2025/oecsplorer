@@ -1,4 +1,4 @@
-# Oeconomia Protocol Explorer: Architecture & Scaffold
+# Architecture & Scaffold
 
 ## Overview
 
