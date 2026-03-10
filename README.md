@@ -2,6 +2,12 @@
 
 Protocol-aware blockchain explorer for the **Oeconomia Protocol Pantheon**: decoding raw blockchain transactions into human-readable activity across Alluria, Eloqura, Artivya, Iridescia, and Oeconomia Governance.
 
+![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)
+![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB)
+![Express](https://img.shields.io/badge/Express-000000?logo=express&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?logo=postgresql&logoColor=white)
+
 ## Quick Start
 
 ```bash
