@@ -1,6 +1,6 @@
 # Oeconomia Protocol Explorer
 
-Protocol-aware blockchain explorer for the **Oeconomia Protocol Pantheon** — decoding raw blockchain transactions into human-readable activity across Alluria, Eloqura, Artivya, Iridescia, and Oeconomia Governance.
+Protocol-aware blockchain explorer for the **Oeconomia Protocol Pantheon**: decoding raw blockchain transactions into human-readable activity across Alluria, Eloqura, Artivya, Iridescia, and Oeconomia Governance.
 
 ## Quick Start
 

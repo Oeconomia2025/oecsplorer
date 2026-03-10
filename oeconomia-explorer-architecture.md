@@ -1,4 +1,4 @@
-# Oeconomia Protocol Explorer — Architecture & Scaffold
+# Oeconomia Protocol Explorer: Architecture & Scaffold
 
 ## Overview
 
@@ -394,43 +394,43 @@ module.exports = ProtocolDecoder;
 src/
 ├── components/
 │   ├── layout/
-│   │   ├── Header.tsx          — Search bar + protocol nav
-│   │   ├── Sidebar.tsx         — Protocol quick links
+│   │   ├── Header.tsx         : Search bar + protocol nav
+│   │   ├── Sidebar.tsx        : Protocol quick links
 │   │   └── Footer.tsx
 │   ├── explorer/
-│   │   ├── SearchBar.tsx       — Universal search (tx/address/block/token)
-│   │   ├── TxDetail.tsx        — Decoded transaction view
-│   │   ├── TxList.tsx          — Paginated transaction table
-│   │   ├── BlockDetail.tsx     — Block info + transactions
-│   │   └── AddressDetail.tsx   — Wallet overview + positions
+│   │   ├── SearchBar.tsx      : Universal search (tx/address/block/token)
+│   │   ├── TxDetail.tsx       : Decoded transaction view
+│   │   ├── TxList.tsx         : Paginated transaction table
+│   │   ├── BlockDetail.tsx    : Block info + transactions
+│   │   └── AddressDetail.tsx  : Wallet overview + positions
 │   ├── protocols/
-│   │   ├── AlluriaPanel.tsx    — Vault status, collateral ratios, ALUD supply
-│   │   ├── EloquraPanel.tsx    — Swap history, pool TVL, TradingView embed
-│   │   ├── ArtivyaPanel.tsx    — Order book, NFT listings
-│   │   ├── IridesciaPanel.tsx  — Deployment logs, template gallery
-│   │   └── GovernancePanel.tsx — Proposals, voting, guardian leaderboard
+│   │   ├── AlluriaPanel.tsx   : Vault status, collateral ratios, ALUD supply
+│   │   ├── EloquraPanel.tsx   : Swap history, pool TVL, TradingView embed
+│   │   ├── ArtivyaPanel.tsx   : Order book, NFT listings
+│   │   ├── IridesciaPanel.tsx : Deployment logs, template gallery
+│   │   └── GovernancePanel.tsx: Proposals, voting, guardian leaderboard
 │   ├── charts/
-│   │   ├── TVLChart.tsx        — Cross-protocol TVL over time
-│   │   ├── VolumeChart.tsx     — Trading volume (Eloqura + Artivya)
-│   │   └── GasTracker.tsx      — Network gas metrics
+│   │   ├── TVLChart.tsx       : Cross-protocol TVL over time
+│   │   ├── VolumeChart.tsx    : Trading volume (Eloqura + Artivya)
+│   │   └── GasTracker.tsx     : Network gas metrics
 │   └── shared/
-│       ├── AddressLink.tsx     — Clickable address with copy + identicon
-│       ├── TokenAmount.tsx     — Formatted token amount with symbol
-│       ├── ProtocolBadge.tsx   — Color-coded protocol identifier
-│       ├── TimeAgo.tsx         — Relative timestamp
-│       └── LiveIndicator.tsx   — Pulsing dot for real-time data
+│       ├── AddressLink.tsx    : Clickable address with copy + identicon
+│       ├── TokenAmount.tsx    : Formatted token amount with symbol
+│       ├── ProtocolBadge.tsx  : Color-coded protocol identifier
+│       ├── TimeAgo.tsx        : Relative timestamp
+│       └── LiveIndicator.tsx  : Pulsing dot for real-time data
 ├── hooks/
-│   ├── useWebSocket.ts        — Live transaction feed
-│   ├── useAlchemy.ts          — Alchemy SDK wrapper
-│   └── useProtocolData.ts     — Protocol-specific data fetching
+│   ├── useWebSocket.ts       : Live transaction feed
+│   ├── useAlchemy.ts         : Alchemy SDK wrapper
+│   └── useProtocolData.ts    : Protocol-specific data fetching
 ├── services/
-│   ├── api.ts                 — REST API client
-│   ├── decoder.ts             — Client-side lightweight decoder
-│   └── websocket.ts           — WebSocket connection manager
+│   ├── api.ts                : REST API client
+│   ├── decoder.ts            : Client-side lightweight decoder
+│   └── websocket.ts          : WebSocket connection manager
 └── utils/
-    ├── formatters.ts          — Wei/Gwei conversion, address truncation
-    ├── protocolColors.ts      — Consistent color mapping per protocol
-    └── constants.ts           — Contract addresses, API endpoints
+    ├── formatters.ts         : Wei/Gwei conversion, address truncation
+    ├── protocolColors.ts     : Consistent color mapping per protocol
+    └── constants.ts          : Contract addresses, API endpoints
 ```
 
 ---
