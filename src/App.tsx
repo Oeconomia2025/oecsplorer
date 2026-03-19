@@ -1,18 +1,20 @@
+import { Suspense, lazy } from "react";
 import { Routes, Route, Link, useLocation, useNavigate } from "react-router-dom";
 import { PROTOCOLS } from "@/utils/constants";
 import { SearchBar, ProtocolIcon } from "@/components/shared";
 import { useTheme } from "@/context/ThemeContext";
 import type { ProtocolId } from "@/utils/constants";
-import Dashboard from "@/pages/Dashboard";
-import TransactionDetail from "@/pages/TransactionDetail";
-import AddressDetail from "@/pages/AddressDetail";
-import ProtocolPage from "@/pages/ProtocolPage";
-import TokensPage from "@/pages/TokensPage";
-import TokenDetailPage from "@/pages/TokenDetailPage";
-import StatsPage from "@/pages/StatsPage";
-import LearnPage from "@/pages/LearnPage";
-import LearnLessonPage from "@/pages/LearnLessonPage";
 import { search } from "@/services/api";
+
+const Dashboard = lazy(() => import("@/pages/Dashboard"));
+const TransactionDetail = lazy(() => import("@/pages/TransactionDetail"));
+const AddressDetail = lazy(() => import("@/pages/AddressDetail"));
+const ProtocolPage = lazy(() => import("@/pages/ProtocolPage"));
+const TokensPage = lazy(() => import("@/pages/TokensPage"));
+const TokenDetailPage = lazy(() => import("@/pages/TokenDetailPage"));
+const StatsPage = lazy(() => import("@/pages/StatsPage"));
+const LearnPage = lazy(() => import("@/pages/LearnPage"));
+const LearnLessonPage = lazy(() => import("@/pages/LearnLessonPage"));
 
 function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
@@ -185,6 +187,7 @@ export default function App() {
       <Header />
       <ProtocolNav />
       <main className="max-w-7xl mx-auto px-4 py-6 pt-[134px]">
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen text-tx-secondary">Loading...</div>}>
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/tx/:hash" element={<TransactionDetail />} />
@@ -196,6 +199,7 @@ export default function App() {
           <Route path="/learn" element={<LearnPage />} />
           <Route path="/learn/:slug" element={<LearnLessonPage />} />
         </Routes>
+        </Suspense>
       </main>
     </div>
   );
