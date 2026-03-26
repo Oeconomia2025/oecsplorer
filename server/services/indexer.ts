@@ -1,7 +1,7 @@
 // ============================================================
 // Oeconomia Explorer — Polling Indexer
 // ============================================================
-// Uses getLogs() every 5 minutes to fetch events emitted by our
+// Uses getLogs() every 30 seconds to fetch events emitted by our
 // exclusive contracts, then decodes matched transactions and
 // stores them in PostgreSQL. Broadcasts new txs via WebSocket.
 // ============================================================
@@ -19,7 +19,7 @@ import {
 
 // -- Configuration ----------------------------------------------------------
 
-const POLL_INTERVAL_MS = 300_000; // 5 minutes
+const POLL_INTERVAL_MS = 30_000; // 30 seconds
 
 // -- Decoder setup ----------------------------------------------------------
 

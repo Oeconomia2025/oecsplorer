@@ -132,7 +132,7 @@ httpServer.listen(Number(PORT), "0.0.0.0", () => {
   ║  WebSocket:   ws://localhost:${PORT}           ║
   ║  Webhooks:    http://localhost:${PORT}/api/webhooks/alchemy  ║
   ║  Health:      http://localhost:${PORT}/health   ║
-  ║  Indexer:     getLogs every 5min               ║
+  ║  Indexer:     getLogs every 30s                ║
   ╚══════════════════════════════════════════════╝
   `);
 
