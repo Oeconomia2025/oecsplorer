@@ -44,7 +44,7 @@ export const PROTOCOLS: Record<ProtocolId, ProtocolConfig> = {
     id: "eloqura",
     name: "Eloqura",
     shortName: "ELOQ",
-    color: "#ae65fc",
+    color: "#393a4e",
     icon: "🔄",
     logo: "https://pub-37d61a7eb7ae45898b46702664710cb2.r2.dev/Eloqura.png",
     description: "DEX/AMM — Uniswap V2/V3 swaps, liquidity pools, cross-chain bridge, yield optimization",
